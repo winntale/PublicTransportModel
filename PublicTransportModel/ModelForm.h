@@ -21,6 +21,10 @@ namespace PublicTransportModel {
 		   Bitmap^ myBitmap;
 	private: MyEnvironment^ env;
 	private: System::Windows::Forms::Timer^ timeAction;
+	private: System::Windows::Forms::Label^ label3;
+	private: System::Windows::Forms::Label^ label4;
+	private: System::Windows::Forms::Label^ label5;
+	private: System::Windows::Forms::Label^ label6;
 
 		   Bitmap^ background;
 
@@ -91,6 +95,10 @@ namespace PublicTransportModel {
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
 			this->buttonExit = (gcnew System::Windows::Forms::Button());
 			this->timeAction = (gcnew System::Windows::Forms::Timer(this->components));
+			this->label3 = (gcnew System::Windows::Forms::Label());
+			this->label4 = (gcnew System::Windows::Forms::Label());
+			this->label5 = (gcnew System::Windows::Forms::Label());
+			this->label6 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -142,6 +150,7 @@ namespace PublicTransportModel {
 			// 
 			this->pictureBox1->BackColor = System::Drawing::Color::Transparent;
 			this->pictureBox1->BackgroundImage = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"pictureBox1.BackgroundImage")));
+			this->pictureBox1->Image = (cli::safe_cast<System::Drawing::Image^>(resources->GetObject(L"pictureBox1.Image")));
 			this->pictureBox1->Location = System::Drawing::Point(-1, 0);
 			this->pictureBox1->Name = L"pictureBox1";
 			this->pictureBox1->Size = System::Drawing::Size(1025, 861);
@@ -164,10 +173,50 @@ namespace PublicTransportModel {
 			this->timeAction->Interval = 50;
 			this->timeAction->Tick += gcnew System::EventHandler(this, &ModelForm::timeAction_Tick);
 			// 
+			// label3
+			// 
+			this->label3->AutoSize = true;
+			this->label3->Location = System::Drawing::Point(1235, 434);
+			this->label3->Name = L"label3";
+			this->label3->Size = System::Drawing::Size(82, 31);
+			this->label3->TabIndex = 12;
+			this->label3->Text = L"label3";
+			// 
+			// label4
+			// 
+			this->label4->AutoSize = true;
+			this->label4->Location = System::Drawing::Point(1323, 434);
+			this->label4->Name = L"label4";
+			this->label4->Size = System::Drawing::Size(82, 31);
+			this->label4->TabIndex = 13;
+			this->label4->Text = L"label4";
+			// 
+			// label5
+			// 
+			this->label5->AutoSize = true;
+			this->label5->Location = System::Drawing::Point(1235, 386);
+			this->label5->Name = L"label5";
+			this->label5->Size = System::Drawing::Size(82, 31);
+			this->label5->TabIndex = 15;
+			this->label5->Text = L"label5";
+			// 
+			// label6
+			// 
+			this->label6->AutoSize = true;
+			this->label6->Location = System::Drawing::Point(1323, 386);
+			this->label6->Name = L"label6";
+			this->label6->Size = System::Drawing::Size(82, 31);
+			this->label6->TabIndex = 14;
+			this->label6->Text = L"label6";
+			// 
 			// ModelForm
 			// 
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::None;
 			this->ClientSize = System::Drawing::Size(1584, 861);
+			this->Controls->Add(this->label5);
+			this->Controls->Add(this->label6);
+			this->Controls->Add(this->label4);
+			this->Controls->Add(this->label3);
 			this->Controls->Add(this->buttonExit);
 			this->Controls->Add(this->colorValue);
 			this->Controls->Add(this->label2);
@@ -191,6 +240,7 @@ namespace PublicTransportModel {
 #pragma endregion
 	private: System::Void ModelForm_Load(System::Object^ sender, System::EventArgs^ e) {
 		env->VerticesGen();
+		if (env->TaxiCars->Count) {  }
 	}
 		   // функция, возвращающая наименование цвета на английском. используется для обращения к опр. картинки машины такси (taxiCarYellow и т.д.)
 		   String^ GetColor(int _colorIndex) {
@@ -233,7 +283,7 @@ namespace PublicTransportModel {
 
 	private: System::Void buttonTaxiSpawn_Click(System::Object^ sender, System::EventArgs^ e) {
 		if ((colorValue->SelectedIndex + 1) && !String::IsNullOrEmpty(maxVelocityValue->Text)) {
-			env->TaxiSpawn();
+			env->TaxiSpawn(label5, label6);
 			env->TaxiCars[env->TaxiCars->Count - 1]->color::set(GetColor(colorValue->SelectedIndex)); // отдаём созданному объекту значение поля цвет, выбранное в комбобоксе на форме
 			env->TaxiCars[env->TaxiCars->Count - 1]->maxVelocity::set(Convert::ToInt16(maxVelocityValue->Text)); // то же самое для поля максимальная скорость
 		}
@@ -244,6 +294,8 @@ namespace PublicTransportModel {
 			MessageBox::Show("Укажите максимальную скорость машины", "Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 		}
 
+		label3->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->npCrossroadIndex::get());
+		label4->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->npVerticeIndex::get());
 		// то есть перед отрисовкой машины такси имеем 4 заполненных поля
 		// 1) координаты 2) направление 3) цвет 4) макс. скорость
 		
