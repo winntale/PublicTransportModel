@@ -206,7 +206,7 @@ public:
 	}
 
 	// функция генерации объекта машины такси
-	void TaxiSpawn(Label^ label1, Label^ label2) {
+	void TaxiSpawn(Label^ label1, Label^ label2, Label^ label3, Label^ label4) {
 		Random^ rndGen = gcnew Random();
 		if (TaxiCars->Count < MAX_TAXICARS) {
 			TaxiCars->Add(gcnew TaxiCar());
@@ -214,10 +214,12 @@ public:
 			// эти переменные нужны для отбора далее второй точки
 			int crossroadIndex1 = rndGen->Next(0, vertexQuantity);
 			int crossroadIndex2 = rndGen->Next(0, vertexQuantity);
+			int crossroadIndex3 = rndGen->Next(0, vertexQuantity);
 
 			// эта переменная нужна для дальнейшего определения направления машины
 			int verticeIndex = rndGen->Next(0, 4);
 			int verticeIndex2 = rndGen->Next(0, 4);
+			int verticeIndex3 = rndGen->Next(0, 4);
 
 			// определение фиксированной точки, и точки, которую будем менять дальше (spawnPoint2).
 			Point^ spawnPoint = Vertices[crossroadIndex1][verticeIndex];
@@ -257,15 +259,23 @@ public:
 					verticeIndex2 = rndGen->Next(0, 2);
 				}
 			}
+
 			spawnPoint = Vertices[crossroadIndex1][verticeIndex];
 			Point^ nextPoint = Vertices[crossroadIndex2][verticeIndex2];
 
+			//для тестирования
 			label1->Text = Convert::ToString(crossroadIndex1);
 			label2->Text = Convert::ToString(verticeIndex);
 
+			label3->Text = Convert::ToString(crossroadIndex3);
+			label4->Text = Convert::ToString(verticeIndex3);
+
+			//заполнение полей объекта свойствами
 			TaxiCars[TaxiCars->Count - 1]->nextPoint::set(nextPoint);
 			TaxiCars[TaxiCars->Count - 1]->npCrossroadIndex::set(crossroadIndex2);
 			TaxiCars[TaxiCars->Count - 1]->npVerticeIndex::set(verticeIndex2);
+
+			// ОПРЕДЕЛЕНИЕ НАПРАВЛЕНИЯ
 
 			if (Math::Abs(spawnPoint->Y - nextPoint->Y) < 0.1) {
 				// устанавливаем значения координат объекту через соответствующие свойства
@@ -287,6 +297,40 @@ public:
 					TaxiCars[TaxiCars->Count - 1]->direction::set("up");
 				}
 				else { TaxiCars[TaxiCars->Count - 1]->direction::set("down"); }
+			}
+
+
+			// ГЕНЕРАЦИЯ 3-ЕЙ ТОЧКИ. отличие от генерации 2-ой в том, что теперь точки могут быть на одном перекрёстке
+			// (однако новый перекрёсток не должен быть тем, откуда только что приехала машина)
+			// это необходимо, так как может возникнуть ситуация перекрёстка, который соединён только с одним другим перекрёстком (откуда и приехала машина)
+
+			// !!ВОЗМОЖНО СТОИТ ПЕРЕМЕСТИТЬ В МЕТОД Move КЛАССА TaxiCar!!
+
+			a = (nextPoint->X == Vertices[crossroadIndex3][verticeIndex3]->X);
+			b = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][verticeIndex3]->Y);
+
+			while (!((a + b) % 2) || (crossroadIndex3 == crossroadIndex1)) {
+				crossroadIndex3 = rndGen->Next(0, vertexQuantity);
+
+				for (int i = 0; i < 4; i++) {
+					a = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][i]->X);
+					b = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][i]->Y);
+					if ((a + b) % 2) { break; }
+				}
+			}
+
+			if (crossroadIndex3 != crossroadIndex2) {
+				if (a && !b) { // машина поедет по вертикали
+					if (crossroadIndex3 > crossroadIndex2) { verticeIndex3 = 2 * rndGen->Next(0, 2); }
+					else if (crossroadIndex3 < crossroadIndex2) { verticeIndex3 = 2 * rndGen->Next(0, 2) + 1; }
+				}
+				else if (b && !a) { // машина поедет по горизонтали
+					if (crossroadIndex3 > crossroadIndex2) { verticeIndex3 = rndGen->Next(2, 4); }
+					else if (crossroadIndex3 < crossroadIndex2) { verticeIndex3 = rndGen->Next(0, 2); }
+				}
+			}
+			else {
+				//точка на перекрёстке должна варьироваться в зависимости от ТЕКУЩЕГО направления движения машины
 			}
 		}
 		// в результате приведённый код создаёт объект машины такси и генерирует ему значения следующих полей

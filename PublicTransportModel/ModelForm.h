@@ -25,6 +25,8 @@ namespace PublicTransportModel {
 	private: System::Windows::Forms::Label^ label4;
 	private: System::Windows::Forms::Label^ label5;
 	private: System::Windows::Forms::Label^ label6;
+	private: System::Windows::Forms::Label^ label7;
+	private: System::Windows::Forms::Label^ label8;
 
 		   Bitmap^ background;
 
@@ -99,6 +101,8 @@ namespace PublicTransportModel {
 			this->label4 = (gcnew System::Windows::Forms::Label());
 			this->label5 = (gcnew System::Windows::Forms::Label());
 			this->label6 = (gcnew System::Windows::Forms::Label());
+			this->label7 = (gcnew System::Windows::Forms::Label());
+			this->label8 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -209,10 +213,30 @@ namespace PublicTransportModel {
 			this->label6->TabIndex = 14;
 			this->label6->Text = L"label6";
 			// 
+			// label7
+			// 
+			this->label7->AutoSize = true;
+			this->label7->Location = System::Drawing::Point(1235, 480);
+			this->label7->Name = L"label7";
+			this->label7->Size = System::Drawing::Size(82, 31);
+			this->label7->TabIndex = 16;
+			this->label7->Text = L"label7";
+			// 
+			// label8
+			// 
+			this->label8->AutoSize = true;
+			this->label8->Location = System::Drawing::Point(1323, 480);
+			this->label8->Name = L"label8";
+			this->label8->Size = System::Drawing::Size(82, 31);
+			this->label8->TabIndex = 17;
+			this->label8->Text = L"label8";
+			// 
 			// ModelForm
 			// 
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::None;
 			this->ClientSize = System::Drawing::Size(1584, 861);
+			this->Controls->Add(this->label8);
+			this->Controls->Add(this->label7);
 			this->Controls->Add(this->label5);
 			this->Controls->Add(this->label6);
 			this->Controls->Add(this->label4);
@@ -283,7 +307,7 @@ namespace PublicTransportModel {
 
 	private: System::Void buttonTaxiSpawn_Click(System::Object^ sender, System::EventArgs^ e) {
 		if ((colorValue->SelectedIndex + 1) && !String::IsNullOrEmpty(maxVelocityValue->Text)) {
-			env->TaxiSpawn(label5, label6);
+			env->TaxiSpawn(label5, label6, label7, label8);
 			env->TaxiCars[env->TaxiCars->Count - 1]->color::set(GetColor(colorValue->SelectedIndex)); // отдаём созданному объекту значение поля цвет, выбранное в комбобоксе на форме
 			env->TaxiCars[env->TaxiCars->Count - 1]->maxVelocity::set(Convert::ToInt16(maxVelocityValue->Text)); // то же самое для поля максимальная скорость
 		}
