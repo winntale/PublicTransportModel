@@ -187,12 +187,12 @@ public:
 		TaxiCars = gcnew System::Collections::Generic::List<TaxiCar^>(0);
 		vertexQuantity = VERTEX_QUANTITY;
 		cordinates = gcnew array<Point^>(vertexQuantity) { Point(46, 419), Point(46, 575),  Point(151, 151), Point(402, 151),
-			Point(402, 419), Point(447, 575), Point(447, 781), Point(524, 59), Point(524, 419), Point(803, 59), Point(803, 302), Point(803, 575) };
+			Point(402, 419), Point(447, 575), Point(447, 781), Point(524, 59), Point(524, 419), Point(803, 59), Point(803, 575) };
 		Vertices = gcnew array<array<Point^>^>(vertexQuantity);
 	}
 	~MyEnvironment() {};
 
-	// функция генерации массива вершин по массиву координат
+	// метод генерации массива вершин по массиву координат
 	Void VerticesGen() {
 		for (int i = 0; i < vertexQuantity; i++) {
 			Vertices[i] = gcnew array<Point^>(4);
@@ -205,70 +205,117 @@ public:
 		}
 	}
 
-	// функция генерации объекта машины такси
+	// метод генерации объекта машины такси
 	void TaxiSpawn(Label^ label1, Label^ label2, Label^ label3, Label^ label4) {
 		Random^ rndGen = gcnew Random();
 		if (TaxiCars->Count < MAX_TAXICARS) {
 			TaxiCars->Add(gcnew TaxiCar());
 
-			// эти переменные нужны для отбора далее второй точки
+			// следующие переменные определяют
+			// 1) 2 точки на 2-х разных перекрёстках, образующие линию, на произвольной точке которой сгенерируется машина
+			// 2) точку на 3-м перекрёстке (не равном 1-ому), куда будет поворачивать машина
+			// фиксированная точка определена элементами с индексами 1, следующие две точки - с индексами 2 и 3
 			int crossroadIndex1 = rndGen->Next(0, vertexQuantity);
 			int crossroadIndex2 = rndGen->Next(0, vertexQuantity);
 			int crossroadIndex3 = rndGen->Next(0, vertexQuantity);
 
-			// эта переменная нужна для дальнейшего определения направления машины
-			int verticeIndex = rndGen->Next(0, 4);
+			int verticeIndex1 = rndGen->Next(0, 4);
 			int verticeIndex2 = rndGen->Next(0, 4);
 			int verticeIndex3 = rndGen->Next(0, 4);
 
-			// определение фиксированной точки, и точки, которую будем менять дальше (spawnPoint2).
-			Point^ spawnPoint = Vertices[crossroadIndex1][verticeIndex];
 
-			bool a = (spawnPoint->X == Vertices[crossroadIndex2][verticeIndex2]->X); // совпал X
-			bool b = (spawnPoint->Y == Vertices[crossroadIndex2][verticeIndex2]->Y); // совпал Y
+			bool a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][verticeIndex2]->X); // совпал X у 2-х точек (1-ая и 2-ая)
+			bool b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][verticeIndex2]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
 
 			// !((a + b) % 2) - цикл меняет координаты точки до тех пор, пока не произойдёт ТОЛЬКО одно из 2х событий (либо a, либо b)
 			// || (crossroadIndex1 == crossroadIndex2) - условие нужно для того, чтобы избежать ситуации взятия двух точек одного перекрёстка
-			while (!((a + b) % 2) || (crossroadIndex1 == crossroadIndex2)) {
+ 			while (!((a + b) % 2) || (crossroadIndex1 == crossroadIndex2)) {
 				crossroadIndex2 = rndGen->Next(0, vertexQuantity);
 
+				// цикл определяет, есть ли путь до 2-го перекрёстка
 				for (int i = 0; i < 4; i++) {
-					a = (spawnPoint->X == Vertices[crossroadIndex2][i]->X);
-					b = (spawnPoint->Y == Vertices[crossroadIndex2][i]->Y);
+					a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][i]->X);
+					b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][i]->Y);
 					if ((a + b) % 2) { break; }
 				}
 			}
 
+			bool a1 = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][verticeIndex3]->X); // совпал X у 2-ой и 3-й точек
+			bool b1 = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][verticeIndex3]->Y); // совпал Y у 2-ой и 3-й точек
+
 			if (a && !b) { // машина поедет по вертикали
-				if (crossroadIndex2 > crossroadIndex1) {
-					verticeIndex = 2 * rndGen->Next(0, 2);
-					verticeIndex2 = 2 * rndGen->Next(0, 2);
+				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2); } // вниз
+				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2) + 1; } // вверх
+
+				while (!b1 || a1) {
+					crossroadIndex3 = rndGen->Next(0, vertexQuantity);
+
+					for (int i = 0; i < 4; i++) {
+						a1 = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][verticeIndex3]->X);
+						b1 = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][i]->Y);
+						if (b1 && !a1) { break; }
+					}
 				}
-				else if (crossroadIndex2 < crossroadIndex1) {
-					verticeIndex = 2 * rndGen->Next(0, 2) + 1;
-					verticeIndex2 = 2 * rndGen->Next(0, 2) + 1;
+
+				if (crossroadIndex3 > crossroadIndex2) {
+					verticeIndex2 = (verticeIndex1 % 2) + 2;
+					verticeIndex3 = rndGen->Next(2, 4);
+				}
+				else if (crossroadIndex3 < crossroadIndex2) {
+					verticeIndex2 = (verticeIndex1 % 2);
+					verticeIndex3 = rndGen->Next(0, 2);
+				}
+				else {
+					verticeIndex2 = verticeIndex1;
+					verticeIndex3 = verticeIndex2 + Math::Pow(-1, (verticeIndex2 % 2));
 				}
 			}
 			else if (b && !a) { // машина поедет по горизонтали
-				if (crossroadIndex2 > crossroadIndex1) {
-					verticeIndex = rndGen->Next(2, 4);
-					verticeIndex2 = rndGen->Next(2, 4);
+				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = rndGen->Next(2, 4); } // направо
+				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = rndGen->Next(0, 2); } // налево
+
+				while (!a1 || b1) {
+					crossroadIndex3 = rndGen->Next(0, vertexQuantity);
+
+					for (int i = 0; i < 4; i++) {
+						a1 = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][i]->X);
+						b1 = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][i]->Y);
+						if (a1 && !b1) { break; }
+					}
 				}
-				else if (crossroadIndex2 < crossroadIndex1) {
-					verticeIndex = rndGen->Next(0, 2);
-					verticeIndex2 = rndGen->Next(0, 2);
+
+				if (crossroadIndex3 > crossroadIndex2) {
+					verticeIndex2 = Math::Floor(verticeIndex1 / 2) * 2;
+					verticeIndex3 = 2 * rndGen->Next(0, 2);
+				}
+				else if (crossroadIndex3 < crossroadIndex2) {
+					verticeIndex2 = Math::Floor(verticeIndex1 / 2) * 2 + 1;
+					verticeIndex3 = 2 * rndGen->Next(0, 2) + 1;
+				}
+				else {
+					verticeIndex2 = verticeIndex1;
+					verticeIndex3 = (verticeIndex2 + 2) % 4;
 				}
 			}
 
-			spawnPoint = Vertices[crossroadIndex1][verticeIndex];
-			Point^ nextPoint = Vertices[crossroadIndex2][verticeIndex2];
-
 			//для тестирования
 			label1->Text = Convert::ToString(crossroadIndex1);
-			label2->Text = Convert::ToString(verticeIndex);
+			label2->Text = Convert::ToString(verticeIndex1);
 
+			// ГЕНЕРАЦИЯ 3-ЕЙ ТОЧКИ. отличие от генерации 2-ой в том, что теперь точки могут быть на одном перекрёстке
+			// (однако новый перекрёсток не должен быть тем, откуда только что приехала машина)
+			// это необходимо, так как может возникнуть ситуация перекрёстка, который соединён только с одним другим перекрёстком (откуда и приехала машина)
+
+			// !!ВОЗМОЖНО СТОИТ ПЕРЕМЕСТИТЬ В МЕТОД Move КЛАССА TaxiCar!!
+
+			//для тестирования
 			label3->Text = Convert::ToString(crossroadIndex3);
 			label4->Text = Convert::ToString(verticeIndex3);
+
+			Point^ spawnPoint = Vertices[crossroadIndex1][verticeIndex1];
+			Point^ nextPoint = Vertices[crossroadIndex2][verticeIndex2];
+			Point^ nextPoint2 = Vertices[crossroadIndex3][verticeIndex3];
+
 
 			//заполнение полей объекта свойствами
 			TaxiCars[TaxiCars->Count - 1]->nextPoint::set(nextPoint);
@@ -297,40 +344,6 @@ public:
 					TaxiCars[TaxiCars->Count - 1]->direction::set("up");
 				}
 				else { TaxiCars[TaxiCars->Count - 1]->direction::set("down"); }
-			}
-
-
-			// ГЕНЕРАЦИЯ 3-ЕЙ ТОЧКИ. отличие от генерации 2-ой в том, что теперь точки могут быть на одном перекрёстке
-			// (однако новый перекрёсток не должен быть тем, откуда только что приехала машина)
-			// это необходимо, так как может возникнуть ситуация перекрёстка, который соединён только с одним другим перекрёстком (откуда и приехала машина)
-
-			// !!ВОЗМОЖНО СТОИТ ПЕРЕМЕСТИТЬ В МЕТОД Move КЛАССА TaxiCar!!
-
-			a = (nextPoint->X == Vertices[crossroadIndex3][verticeIndex3]->X);
-			b = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][verticeIndex3]->Y);
-
-			while (!((a + b) % 2) || (crossroadIndex3 == crossroadIndex1)) {
-				crossroadIndex3 = rndGen->Next(0, vertexQuantity);
-
-				for (int i = 0; i < 4; i++) {
-					a = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][i]->X);
-					b = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][i]->Y);
-					if ((a + b) % 2) { break; }
-				}
-			}
-
-			if (crossroadIndex3 != crossroadIndex2) {
-				if (a && !b) { // машина поедет по вертикали
-					if (crossroadIndex3 > crossroadIndex2) { verticeIndex3 = 2 * rndGen->Next(0, 2); }
-					else if (crossroadIndex3 < crossroadIndex2) { verticeIndex3 = 2 * rndGen->Next(0, 2) + 1; }
-				}
-				else if (b && !a) { // машина поедет по горизонтали
-					if (crossroadIndex3 > crossroadIndex2) { verticeIndex3 = rndGen->Next(2, 4); }
-					else if (crossroadIndex3 < crossroadIndex2) { verticeIndex3 = rndGen->Next(0, 2); }
-				}
-			}
-			else {
-				//точка на перекрёстке должна варьироваться в зависимости от ТЕКУЩЕГО направления движения машины
 			}
 		}
 		// в результате приведённый код создаёт объект машины такси и генерирует ему значения следующих полей

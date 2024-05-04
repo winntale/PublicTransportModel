@@ -27,6 +27,7 @@ namespace PublicTransportModel {
 	private: System::Windows::Forms::Label^ label6;
 	private: System::Windows::Forms::Label^ label7;
 	private: System::Windows::Forms::Label^ label8;
+	private: System::Windows::Forms::Label^ label9;
 
 		   Bitmap^ background;
 
@@ -103,6 +104,7 @@ namespace PublicTransportModel {
 			this->label6 = (gcnew System::Windows::Forms::Label());
 			this->label7 = (gcnew System::Windows::Forms::Label());
 			this->label8 = (gcnew System::Windows::Forms::Label());
+			this->label9 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -231,10 +233,20 @@ namespace PublicTransportModel {
 			this->label8->TabIndex = 17;
 			this->label8->Text = L"label8";
 			// 
+			// label9
+			// 
+			this->label9->AutoSize = true;
+			this->label9->Location = System::Drawing::Point(1323, 673);
+			this->label9->Name = L"label9";
+			this->label9->Size = System::Drawing::Size(82, 31);
+			this->label9->TabIndex = 18;
+			this->label9->Text = L"label9";
+			// 
 			// ModelForm
 			// 
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::None;
 			this->ClientSize = System::Drawing::Size(1584, 861);
+			this->Controls->Add(this->label9);
 			this->Controls->Add(this->label8);
 			this->Controls->Add(this->label7);
 			this->Controls->Add(this->label5);
@@ -320,6 +332,8 @@ namespace PublicTransportModel {
 
 		label3->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->npCrossroadIndex::get());
 		label4->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->npVerticeIndex::get());
+
+		label9->Text = Convert::ToString(env->TaxiCars->Count);
 		// то есть перед отрисовкой машины такси имеем 4 заполненных поля
 		// 1) координаты 2) направление 3) цвет 4) макс. скорость
 		
