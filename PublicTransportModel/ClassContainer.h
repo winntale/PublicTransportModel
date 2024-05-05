@@ -251,7 +251,7 @@ public:
 					crossroadIndex3 = rndGen->Next(0, vertexQuantity);
 
 					for (int i = 0; i < 4; i++) {
-						a1 = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][verticeIndex3]->X);
+						a1 = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][i]->X);
 						b1 = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][i]->Y);
 						if (b1 && !a1) { break; }
 					}

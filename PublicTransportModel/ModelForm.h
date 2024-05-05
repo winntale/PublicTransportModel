@@ -28,6 +28,7 @@ namespace PublicTransportModel {
 	private: System::Windows::Forms::Label^ label7;
 	private: System::Windows::Forms::Label^ label8;
 	private: System::Windows::Forms::Label^ label9;
+	private: System::Windows::Forms::Timer^ timerStopSpamming;
 
 		   Bitmap^ background;
 
@@ -105,22 +106,29 @@ namespace PublicTransportModel {
 			this->label7 = (gcnew System::Windows::Forms::Label());
 			this->label8 = (gcnew System::Windows::Forms::Label());
 			this->label9 = (gcnew System::Windows::Forms::Label());
+			this->timerStopSpamming = (gcnew System::Windows::Forms::Timer(this->components));
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
 			// buttonTaxiSpawn
 			// 
+			this->buttonTaxiSpawn->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(64)), static_cast<System::Int32>(static_cast<System::Byte>(64)),
+				static_cast<System::Int32>(static_cast<System::Byte>(64)));
+			this->buttonTaxiSpawn->Cursor = System::Windows::Forms::Cursors::Hand;
+			this->buttonTaxiSpawn->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->buttonTaxiSpawn->ForeColor = System::Drawing::Color::Silver;
 			this->buttonTaxiSpawn->Location = System::Drawing::Point(1287, 220);
 			this->buttonTaxiSpawn->Name = L"buttonTaxiSpawn";
 			this->buttonTaxiSpawn->Size = System::Drawing::Size(259, 95);
 			this->buttonTaxiSpawn->TabIndex = 0;
 			this->buttonTaxiSpawn->Text = L"Создать объект машины такси";
-			this->buttonTaxiSpawn->UseVisualStyleBackColor = true;
+			this->buttonTaxiSpawn->UseVisualStyleBackColor = false;
 			this->buttonTaxiSpawn->Click += gcnew System::EventHandler(this, &ModelForm::buttonTaxiSpawn_Click);
 			// 
 			// label1
 			// 
 			this->label1->AutoSize = true;
+			this->label1->ForeColor = System::Drawing::Color::Silver;
 			this->label1->Location = System::Drawing::Point(1190, 31);
 			this->label1->Name = L"label1";
 			this->label1->Size = System::Drawing::Size(356, 31);
@@ -130,6 +138,7 @@ namespace PublicTransportModel {
 			// label2
 			// 
 			this->label2->AutoSize = true;
+			this->label2->ForeColor = System::Drawing::Color::Silver;
 			this->label2->Location = System::Drawing::Point(1070, 128);
 			this->label2->Name = L"label2";
 			this->label2->Size = System::Drawing::Size(476, 31);
@@ -165,12 +174,16 @@ namespace PublicTransportModel {
 			// 
 			// buttonExit
 			// 
+			this->buttonExit->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(64)), static_cast<System::Int32>(static_cast<System::Byte>(64)),
+				static_cast<System::Int32>(static_cast<System::Byte>(64)));
+			this->buttonExit->FlatStyle = System::Windows::Forms::FlatStyle::Flat;
+			this->buttonExit->ForeColor = System::Drawing::Color::Silver;
 			this->buttonExit->Location = System::Drawing::Point(1413, 801);
 			this->buttonExit->Name = L"buttonExit";
 			this->buttonExit->Size = System::Drawing::Size(159, 48);
 			this->buttonExit->TabIndex = 11;
 			this->buttonExit->Text = L"Выйти";
-			this->buttonExit->UseVisualStyleBackColor = true;
+			this->buttonExit->UseVisualStyleBackColor = false;
 			this->buttonExit->Click += gcnew System::EventHandler(this, &ModelForm::buttonExit_Click);
 			// 
 			// timeAction
@@ -182,6 +195,7 @@ namespace PublicTransportModel {
 			// label3
 			// 
 			this->label3->AutoSize = true;
+			this->label3->ForeColor = System::Drawing::Color::Silver;
 			this->label3->Location = System::Drawing::Point(1235, 434);
 			this->label3->Name = L"label3";
 			this->label3->Size = System::Drawing::Size(82, 31);
@@ -191,6 +205,7 @@ namespace PublicTransportModel {
 			// label4
 			// 
 			this->label4->AutoSize = true;
+			this->label4->ForeColor = System::Drawing::Color::Silver;
 			this->label4->Location = System::Drawing::Point(1323, 434);
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(82, 31);
@@ -200,6 +215,7 @@ namespace PublicTransportModel {
 			// label5
 			// 
 			this->label5->AutoSize = true;
+			this->label5->ForeColor = System::Drawing::Color::Silver;
 			this->label5->Location = System::Drawing::Point(1235, 386);
 			this->label5->Name = L"label5";
 			this->label5->Size = System::Drawing::Size(82, 31);
@@ -209,6 +225,7 @@ namespace PublicTransportModel {
 			// label6
 			// 
 			this->label6->AutoSize = true;
+			this->label6->ForeColor = System::Drawing::Color::Silver;
 			this->label6->Location = System::Drawing::Point(1323, 386);
 			this->label6->Name = L"label6";
 			this->label6->Size = System::Drawing::Size(82, 31);
@@ -218,6 +235,7 @@ namespace PublicTransportModel {
 			// label7
 			// 
 			this->label7->AutoSize = true;
+			this->label7->ForeColor = System::Drawing::Color::Silver;
 			this->label7->Location = System::Drawing::Point(1235, 480);
 			this->label7->Name = L"label7";
 			this->label7->Size = System::Drawing::Size(82, 31);
@@ -227,6 +245,7 @@ namespace PublicTransportModel {
 			// label8
 			// 
 			this->label8->AutoSize = true;
+			this->label8->ForeColor = System::Drawing::Color::Silver;
 			this->label8->Location = System::Drawing::Point(1323, 480);
 			this->label8->Name = L"label8";
 			this->label8->Size = System::Drawing::Size(82, 31);
@@ -236,15 +255,23 @@ namespace PublicTransportModel {
 			// label9
 			// 
 			this->label9->AutoSize = true;
+			this->label9->ForeColor = System::Drawing::Color::Silver;
 			this->label9->Location = System::Drawing::Point(1323, 673);
 			this->label9->Name = L"label9";
 			this->label9->Size = System::Drawing::Size(82, 31);
 			this->label9->TabIndex = 18;
 			this->label9->Text = L"label9";
 			// 
+			// timerStopSpamming
+			// 
+			this->timerStopSpamming->Interval = 500;
+			this->timerStopSpamming->Tick += gcnew System::EventHandler(this, &ModelForm::timerStopSpamming_Tick);
+			// 
 			// ModelForm
 			// 
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::None;
+			this->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(70)), static_cast<System::Int32>(static_cast<System::Byte>(73)),
+				static_cast<System::Int32>(static_cast<System::Byte>(79)));
 			this->ClientSize = System::Drawing::Size(1584, 861);
 			this->Controls->Add(this->label9);
 			this->Controls->Add(this->label8);
@@ -262,6 +289,7 @@ namespace PublicTransportModel {
 			this->Controls->Add(this->pictureBox1);
 			this->Font = (gcnew System::Drawing::Font(L"Microsoft YaHei", 18, System::Drawing::FontStyle::Regular, System::Drawing::GraphicsUnit::Point,
 				static_cast<System::Byte>(204)));
+			this->ForeColor = System::Drawing::SystemColors::ControlText;
 			this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::None;
 			this->Margin = System::Windows::Forms::Padding(7);
 			this->Name = L"ModelForm";
@@ -276,7 +304,7 @@ namespace PublicTransportModel {
 #pragma endregion
 	private: System::Void ModelForm_Load(System::Object^ sender, System::EventArgs^ e) {
 		env->VerticesGen();
-		if (env->TaxiCars->Count) {  }
+		timerStopSpamming->Interval = ANTISPAM_INTERVAL;
 	}
 		   // функция, возвращающая наименование цвета на английском. используется для обращения к опр. картинки машины такси (taxiCarYellow и т.д.)
 		   String^ GetColor(int _colorIndex) {
@@ -318,6 +346,10 @@ namespace PublicTransportModel {
 		   // -> ScreenUpdate (совмещает в себе все функции движения) -> TimerTick (регулирует частоту обновления экрана)
 
 	private: System::Void buttonTaxiSpawn_Click(System::Object^ sender, System::EventArgs^ e) {
+		timerStopSpamming->Enabled = true;
+		buttonTaxiSpawn->Enabled = false;
+		buttonTaxiSpawn->ForeColor = Color::DimGray;
+
 		if ((colorValue->SelectedIndex + 1) && !String::IsNullOrEmpty(maxVelocityValue->Text)) {
 			env->TaxiSpawn(label5, label6, label7, label8);
 			env->TaxiCars[env->TaxiCars->Count - 1]->color::set(GetColor(colorValue->SelectedIndex)); // отдаём созданному объекту значение поля цвет, выбранное в комбобоксе на форме
@@ -346,5 +378,11 @@ namespace PublicTransportModel {
 		ScreenUpdater();
 		env->TimerTickActions();
 	}
+private: System::Void timerStopSpamming_Tick(System::Object^ sender, System::EventArgs^ e) {
+	timerStopSpamming->Enabled = false;
+	buttonTaxiSpawn->Enabled = true;
+	buttonTaxiSpawn->ForeColor = Color::Silver;
+	buttonTaxiSpawn->Cursor = Cursors::Hand;
+}
 };
 }
