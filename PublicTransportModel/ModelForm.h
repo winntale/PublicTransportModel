@@ -27,8 +27,9 @@ namespace PublicTransportModel {
 	private: System::Windows::Forms::Label^ label6;
 	private: System::Windows::Forms::Label^ label7;
 	private: System::Windows::Forms::Label^ label8;
-	private: System::Windows::Forms::Label^ label9;
+
 	private: System::Windows::Forms::Timer^ timerStopSpamming;
+	private: System::Windows::Forms::Label^ label9;
 
 		   Bitmap^ background;
 
@@ -105,8 +106,8 @@ namespace PublicTransportModel {
 			this->label6 = (gcnew System::Windows::Forms::Label());
 			this->label7 = (gcnew System::Windows::Forms::Label());
 			this->label8 = (gcnew System::Windows::Forms::Label());
-			this->label9 = (gcnew System::Windows::Forms::Label());
 			this->timerStopSpamming = (gcnew System::Windows::Forms::Timer(this->components));
+			this->label9 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -196,7 +197,7 @@ namespace PublicTransportModel {
 			// 
 			this->label3->AutoSize = true;
 			this->label3->ForeColor = System::Drawing::Color::Silver;
-			this->label3->Location = System::Drawing::Point(1235, 434);
+			this->label3->Location = System::Drawing::Point(1070, 402);
 			this->label3->Name = L"label3";
 			this->label3->Size = System::Drawing::Size(82, 31);
 			this->label3->TabIndex = 12;
@@ -206,7 +207,7 @@ namespace PublicTransportModel {
 			// 
 			this->label4->AutoSize = true;
 			this->label4->ForeColor = System::Drawing::Color::Silver;
-			this->label4->Location = System::Drawing::Point(1323, 434);
+			this->label4->Location = System::Drawing::Point(1158, 402);
 			this->label4->Name = L"label4";
 			this->label4->Size = System::Drawing::Size(82, 31);
 			this->label4->TabIndex = 13;
@@ -216,7 +217,7 @@ namespace PublicTransportModel {
 			// 
 			this->label5->AutoSize = true;
 			this->label5->ForeColor = System::Drawing::Color::Silver;
-			this->label5->Location = System::Drawing::Point(1235, 386);
+			this->label5->Location = System::Drawing::Point(1070, 354);
 			this->label5->Name = L"label5";
 			this->label5->Size = System::Drawing::Size(82, 31);
 			this->label5->TabIndex = 15;
@@ -226,7 +227,7 @@ namespace PublicTransportModel {
 			// 
 			this->label6->AutoSize = true;
 			this->label6->ForeColor = System::Drawing::Color::Silver;
-			this->label6->Location = System::Drawing::Point(1323, 386);
+			this->label6->Location = System::Drawing::Point(1158, 354);
 			this->label6->Name = L"label6";
 			this->label6->Size = System::Drawing::Size(82, 31);
 			this->label6->TabIndex = 14;
@@ -236,7 +237,7 @@ namespace PublicTransportModel {
 			// 
 			this->label7->AutoSize = true;
 			this->label7->ForeColor = System::Drawing::Color::Silver;
-			this->label7->Location = System::Drawing::Point(1235, 480);
+			this->label7->Location = System::Drawing::Point(1070, 448);
 			this->label7->Name = L"label7";
 			this->label7->Size = System::Drawing::Size(82, 31);
 			this->label7->TabIndex = 16;
@@ -246,26 +247,26 @@ namespace PublicTransportModel {
 			// 
 			this->label8->AutoSize = true;
 			this->label8->ForeColor = System::Drawing::Color::Silver;
-			this->label8->Location = System::Drawing::Point(1323, 480);
+			this->label8->Location = System::Drawing::Point(1158, 448);
 			this->label8->Name = L"label8";
 			this->label8->Size = System::Drawing::Size(82, 31);
 			this->label8->TabIndex = 17;
 			this->label8->Text = L"label8";
 			// 
-			// label9
-			// 
-			this->label9->AutoSize = true;
-			this->label9->ForeColor = System::Drawing::Color::Silver;
-			this->label9->Location = System::Drawing::Point(1323, 673);
-			this->label9->Name = L"label9";
-			this->label9->Size = System::Drawing::Size(82, 31);
-			this->label9->TabIndex = 18;
-			this->label9->Text = L"label9";
-			// 
 			// timerStopSpamming
 			// 
 			this->timerStopSpamming->Interval = 500;
 			this->timerStopSpamming->Tick += gcnew System::EventHandler(this, &ModelForm::timerStopSpamming_Tick);
+			// 
+			// label9
+			// 
+			this->label9->AutoSize = true;
+			this->label9->ForeColor = System::Drawing::Color::Silver;
+			this->label9->Location = System::Drawing::Point(1158, 641);
+			this->label9->Name = L"label9";
+			this->label9->Size = System::Drawing::Size(82, 31);
+			this->label9->TabIndex = 18;
+			this->label9->Text = L"label9";
 			// 
 			// ModelForm
 			// 
