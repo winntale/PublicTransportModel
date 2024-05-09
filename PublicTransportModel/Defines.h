@@ -1,6 +1,6 @@
 #pragma once
 
-#define VERTEX_QUANTITY 11
+#define VERTEX_QUANTITY 13
 
 #define MAX_TAXICARS 20
 #define TAXICAR_IMG_HEIGHT 32

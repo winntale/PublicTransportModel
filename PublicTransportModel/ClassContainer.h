@@ -113,7 +113,7 @@ public:
 	}
 
 	// метод описания движения и поворота
-	void Move(array<array<Point^>^>^ Vertices, Label^ label) {
+	void Move(array<array<Point^>^>^ Vertices) {
 		// в зависимости от направления (direction) меняются координаты x, y
 		if (_direction == "left") { _xPos -= SPEED; }
 		else if (_direction == "right") { _xPos += SPEED; }
@@ -123,7 +123,7 @@ public:
 
 
 		Random^ rndGen = gcnew Random();
-		
+
 		bool isTurned = false;
 		String^ _direction2 = _direction;
 
@@ -132,11 +132,10 @@ public:
 		// машина достигла Y (двигалась по вертикали)
 		if (_direction == "up" || _direction == "down") {
 			if ((Math::Abs(_yPos - (_nextPoint->Y - (TAXICAR_IMG_HEIGHT / 2))) < SPEED) && !isTurned) {
-				label->Text = "ySame";
 				_yPos = _nextPoint->Y - (TAXICAR_IMG_HEIGHT / 2); // корректировка Y
 
-				bool sameX = (Vertices[_npCrossroadIndex][_npVerticeIndex]->X == Vertices[_npCrossroadIndex2][_npVerticeIndex2]->X); // совпал X у 1-й и 2-й точки
-				bool sameY = (Vertices[_npCrossroadIndex][_npVerticeIndex]->Y == Vertices[_npCrossroadIndex2][_npVerticeIndex2]->Y); // совпал Y у 1-й и 2-й точки
+				bool a = (Vertices[_npCrossroadIndex][_npVerticeIndex]->X == Vertices[_npCrossroadIndex2][_npVerticeIndex2]->X); // совпал X у 1-й и 2-й точки
+				bool b = (Vertices[_npCrossroadIndex][_npVerticeIndex]->Y == Vertices[_npCrossroadIndex2][_npVerticeIndex2]->Y); // совпал Y у 1-й и 2-й точки
 
 				// (2) -> (1) (то есть (2) становится startPoint'ом)
 				int crossroadIndex1 = _npCrossroadIndex;
@@ -150,35 +149,27 @@ public:
 				// задаём горизонтальное движение до текущей (2)
 				if (_npCrossroadIndex > crossroadIndex1) { _direction2 = "right"; } // направо
 				else if (_npCrossroadIndex < crossroadIndex1) { _direction2 = "left"; } // налево
-				else {
-					if (_direction == "up") { _direction2 = "left"; }
-					else { _direction2 = "right"; }
-				}
 
 				// (*) -> (3). создание новой точки, которая станет nextPoint2'ом
 				// 1) генерируем перекрёсток (*), пока не достигнем горизонтального движения
-				while (!sameY || sameX) {
+				while (b || !a || (_npCrossroadIndex == _npCrossroadIndex2)) {
 					_npCrossroadIndex2 = rndGen->Next(0, VERTEX_QUANTITY);
 
 					for (int i = 0; i < 4; i++) {
-						sameX = (Vertices[_npCrossroadIndex][_npVerticeIndex]->X == Vertices[_npCrossroadIndex2][i]->X);
-						sameY = (Vertices[_npCrossroadIndex][_npVerticeIndex]->Y == Vertices[_npCrossroadIndex2][i]->Y);
-						if (sameY && !sameX) { break; }
+						a = (Vertices[_npCrossroadIndex][_npVerticeIndex]->X == Vertices[_npCrossroadIndex2][i]->X);
+						b = (Vertices[_npCrossroadIndex][_npVerticeIndex]->Y == Vertices[_npCrossroadIndex2][i]->Y);
+						if (!b && a && (_npCrossroadIndex != _npCrossroadIndex2)) { break; }
 					}
 				}
-
 				if (_npCrossroadIndex2 > _npCrossroadIndex) {
-					_npVerticeIndex = (verticeIndex1 % 2) + 2;
-					_npVerticeIndex2 = rndGen->Next(2, 4);
+					_npVerticeIndex = Convert::ToInt16(verticeIndex1 / 2) * 2;
+					_npVerticeIndex2 = 2 * rndGen->Next(0, 2);
 				}
 				else if (_npCrossroadIndex2 < _npCrossroadIndex) {
-					_npVerticeIndex = (verticeIndex1 % 2);
-					_npVerticeIndex2 = rndGen->Next(0, 2);
+					_npVerticeIndex = Convert::ToInt16(verticeIndex1 / 2) * 2 + 1;
+					_npVerticeIndex2 = 2 * rndGen->Next(0, 2) + 1;
 				}
-				else {
-					_npVerticeIndex = verticeIndex1;
-					_npVerticeIndex2 = _npVerticeIndex + Math::Pow(-1, (_npVerticeIndex % 2));
-				}
+				
 
 				_nextPoint = Vertices[_npCrossroadIndex][_npVerticeIndex];
 				_nextPoint2 = Vertices[_npCrossroadIndex2][_npVerticeIndex2];
@@ -189,11 +180,10 @@ public:
 		// машина достигла X (двигалась по горизонтали)
 		else if (_direction == "right" || _direction == "left") {
 			if ((Math::Abs(_xPos - (_nextPoint->X - (TAXICAR_IMG_HEIGHT / 2))) < SPEED) && !isTurned) {
-				label->Text = "xSame";
 				_xPos = _nextPoint->X - (TAXICAR_IMG_HEIGHT / 2); // корректировка X
 
-				bool sameX = (Vertices[_npCrossroadIndex][_npVerticeIndex]->X == Vertices[_npCrossroadIndex2][_npVerticeIndex2]->X); // совпал X у 1-й и 2-й точки
-				bool sameY = (Vertices[_npCrossroadIndex][_npVerticeIndex]->Y == Vertices[_npCrossroadIndex2][_npVerticeIndex2]->Y); // совпал Y у 1-й и 2-й точки
+				bool a = (Vertices[_npCrossroadIndex][_npVerticeIndex]->X == Vertices[_npCrossroadIndex2][_npVerticeIndex2]->X); // совпал X у 1-й и 2-й точки
+				bool b = (Vertices[_npCrossroadIndex][_npVerticeIndex]->Y == Vertices[_npCrossroadIndex2][_npVerticeIndex2]->Y); // совпал Y у 1-й и 2-й точки
 
 				// (2) -> (1) (то есть (2) становится startPoint'ом)
 				int crossroadIndex1 = _npCrossroadIndex;
@@ -207,32 +197,24 @@ public:
 				// задаём вертикальное движение до текущей (2)
 				if (_npCrossroadIndex > crossroadIndex1) { _direction2 = "down"; } // вниз
 				else if (_npCrossroadIndex < crossroadIndex1) { _direction2 = "up"; } // вверх
-				else {
-					if (_direction == "right") { _direction2 = "up"; }
-					else { _direction2 = "down"; }
-				}
 
-				while (!sameX || sameY) {
+				while (a || !b || (_npCrossroadIndex == _npCrossroadIndex2)) {
 					_npCrossroadIndex2 = rndGen->Next(0, VERTEX_QUANTITY);
 
 					for (int i = 0; i < 4; i++) {
-						sameX = (Vertices[_npCrossroadIndex][_npVerticeIndex]->X == Vertices[_npCrossroadIndex2][i]->X);
-						sameY = (Vertices[_npCrossroadIndex][_npVerticeIndex]->Y == Vertices[_npCrossroadIndex2][i]->Y);
-						if (sameX && !sameY) { break; }
+						a = (Vertices[_npCrossroadIndex][_npVerticeIndex]->X == Vertices[_npCrossroadIndex2][i]->X);
+						b = (Vertices[_npCrossroadIndex][_npVerticeIndex]->Y == Vertices[_npCrossroadIndex2][i]->Y);
+						if (!a && b && (_npCrossroadIndex != _npCrossroadIndex2)) { break; }
 					}
 				}
 
 				if (_npCrossroadIndex2 > _npCrossroadIndex) {
-					_npVerticeIndex = Math::Floor(verticeIndex1 / 2) * 2;
-					_npVerticeIndex2 = 2 * rndGen->Next(0, 2);
+					_npVerticeIndex = (verticeIndex1 % 2) + 2;
+					_npVerticeIndex2 = rndGen->Next(2, 4);
 				}
 				else if (_npCrossroadIndex2 < _npCrossroadIndex) {
-					_npVerticeIndex = Math::Floor(verticeIndex1 / 2) * 2 + 1;
-					_npVerticeIndex2 = 2 * rndGen->Next(0, 2) + 1;
-				}
-				else {
-					_npVerticeIndex = verticeIndex1;
-					_npVerticeIndex2 = (_npVerticeIndex + 2) % 4;
+					_npVerticeIndex = (verticeIndex1 % 2);
+					_npVerticeIndex2 = rndGen->Next(0, 2);
 				}
 
 				_nextPoint = Vertices[_npCrossroadIndex][_npVerticeIndex];
@@ -241,13 +223,11 @@ public:
 				isTurned = true;
 			}
 		}
-		
+
 		if (isTurned) {
 			_direction = _direction2;
 			isTurned = false;
 		}
-		label->Text = "noSame";
-		
 	}
 
 };
@@ -263,8 +243,8 @@ public:
 
 	MyEnvironment() {
 		TaxiCars = gcnew System::Collections::Generic::List<TaxiCar^>(0);
-		cordinates = gcnew array<Point^>(VERTEX_QUANTITY) { Point(46, 419), Point(46, 575),  Point(151, 151), Point(402, 151),
-			Point(402, 419), Point(447, 575), Point(447, 781), Point(524, 59), Point(524, 419), Point(803, 59), Point(803, 575) };
+		cordinates = gcnew array<Point^>(VERTEX_QUANTITY) { Point(151, 39), Point(151, 290), Point(151, 792),
+			Point(402, 39), Point(402, 290), Point(402, 541), Point(402, 792), Point(653, 39), Point(653, 290), Point(653, 541), Point(904, 290), Point(904, 541), Point(904, 792) };
 		Vertices = gcnew array<array<Point^>^>(VERTEX_QUANTITY);
 	}
 	~MyEnvironment() {};
@@ -324,7 +304,7 @@ public:
 				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2); } // вниз
 				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2) + 1; } // вверх
 
-				while (!b1 || a1) { // пока не найден путь по горизонтали
+				while (!b1 || a1 || (crossroadIndex3 == crossroadIndex2)) { // пока не найден путь по горизонтали
 					crossroadIndex3 = rndGen->Next(0, VERTEX_QUANTITY);
 
 					for (int i = 0; i < 4; i++) {
@@ -342,16 +322,12 @@ public:
 					verticeIndex2 = (verticeIndex1 % 2);
 					verticeIndex3 = rndGen->Next(0, 2);
 				}
-				else {
-					verticeIndex2 = verticeIndex1;
-					verticeIndex3 = verticeIndex2 + Math::Pow(-1, (verticeIndex2 % 2));
-				}
 			}
 			else if (b && !a) { // машина изначально поедет по горизонтали
 				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = rndGen->Next(2, 4); } // направо
 				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = rndGen->Next(0, 2); } // налево
 
-				while (!a1 || b1) { // пока не найден путь по вертикали
+				while (!a1 || b1 || (crossroadIndex3 == crossroadIndex2)) { // пока не найден путь по вертикали
 					crossroadIndex3 = rndGen->Next(0, VERTEX_QUANTITY);
 
 					for (int i = 0; i < 4; i++) {
@@ -368,10 +344,6 @@ public:
 				else if (crossroadIndex3 < crossroadIndex2) {
 					verticeIndex2 = Math::Floor(verticeIndex1 / 2) * 2 + 1;
 					verticeIndex3 = 2 * rndGen->Next(0, 2) + 1;
-				}
-				else {
-					verticeIndex2 = verticeIndex1;
-					verticeIndex3 = (verticeIndex2 + 2) % 4;
 				}
 			}
 
@@ -426,8 +398,8 @@ public:
 		// 2) направление движения (direction)
 	}
 
-	void TimerTickActions(Label^ label) {
-		for (int i = 0; i < TaxiCars->Count; i++) TaxiCars[i]->Move(Vertices, label);
+	void TimerTickActions() {
+		for (int i = 0; i < TaxiCars->Count; i++) TaxiCars[i]->Move(Vertices);
 	}
 };
 

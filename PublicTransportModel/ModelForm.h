@@ -21,22 +21,22 @@ namespace PublicTransportModel {
 		   Bitmap^ myBitmap;
 	private: MyEnvironment^ env;
 	private: System::Windows::Forms::Timer^ timeAction;
-	private: System::Windows::Forms::Label^ label3;
-	private: System::Windows::Forms::Label^ label4;
-	private: System::Windows::Forms::Label^ label5;
-	private: System::Windows::Forms::Label^ label6;
+
+
+
+
 
 
 
 	private: System::Windows::Forms::Timer^ timerStopSpamming;
-	private: System::Windows::Forms::Label^ label9;
-	private: System::Windows::Forms::Label^ label7;
-	private: System::Windows::Forms::Label^ label8;
-	private: System::Windows::Forms::Label^ label10;
-	private: System::Windows::Forms::Label^ label11;
-	private: System::Windows::Forms::Label^ label12;
-	private: System::Windows::Forms::Label^ label13;
-	private: System::Windows::Forms::Label^ label14;
+
+
+
+
+
+
+
+
 
 		   Bitmap^ background;
 
@@ -107,19 +107,7 @@ namespace PublicTransportModel {
 			this->pictureBox1 = (gcnew System::Windows::Forms::PictureBox());
 			this->buttonExit = (gcnew System::Windows::Forms::Button());
 			this->timeAction = (gcnew System::Windows::Forms::Timer(this->components));
-			this->label3 = (gcnew System::Windows::Forms::Label());
-			this->label4 = (gcnew System::Windows::Forms::Label());
-			this->label5 = (gcnew System::Windows::Forms::Label());
-			this->label6 = (gcnew System::Windows::Forms::Label());
 			this->timerStopSpamming = (gcnew System::Windows::Forms::Timer(this->components));
-			this->label9 = (gcnew System::Windows::Forms::Label());
-			this->label7 = (gcnew System::Windows::Forms::Label());
-			this->label8 = (gcnew System::Windows::Forms::Label());
-			this->label10 = (gcnew System::Windows::Forms::Label());
-			this->label11 = (gcnew System::Windows::Forms::Label());
-			this->label12 = (gcnew System::Windows::Forms::Label());
-			this->label13 = (gcnew System::Windows::Forms::Label());
-			this->label14 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -205,130 +193,10 @@ namespace PublicTransportModel {
 			this->timeAction->Interval = 50;
 			this->timeAction->Tick += gcnew System::EventHandler(this, &ModelForm::timeAction_Tick);
 			// 
-			// label3
-			// 
-			this->label3->AutoSize = true;
-			this->label3->ForeColor = System::Drawing::Color::Silver;
-			this->label3->Location = System::Drawing::Point(1070, 402);
-			this->label3->Name = L"label3";
-			this->label3->Size = System::Drawing::Size(82, 31);
-			this->label3->TabIndex = 12;
-			this->label3->Text = L"label3";
-			// 
-			// label4
-			// 
-			this->label4->AutoSize = true;
-			this->label4->ForeColor = System::Drawing::Color::Silver;
-			this->label4->Location = System::Drawing::Point(1158, 402);
-			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(82, 31);
-			this->label4->TabIndex = 13;
-			this->label4->Text = L"label4";
-			// 
-			// label5
-			// 
-			this->label5->AutoSize = true;
-			this->label5->ForeColor = System::Drawing::Color::Silver;
-			this->label5->Location = System::Drawing::Point(1070, 444);
-			this->label5->Name = L"label5";
-			this->label5->Size = System::Drawing::Size(82, 31);
-			this->label5->TabIndex = 15;
-			this->label5->Text = L"label5";
-			// 
-			// label6
-			// 
-			this->label6->AutoSize = true;
-			this->label6->ForeColor = System::Drawing::Color::Silver;
-			this->label6->Location = System::Drawing::Point(1158, 444);
-			this->label6->Name = L"label6";
-			this->label6->Size = System::Drawing::Size(82, 31);
-			this->label6->TabIndex = 14;
-			this->label6->Text = L"label6";
-			// 
 			// timerStopSpamming
 			// 
 			this->timerStopSpamming->Interval = 500;
 			this->timerStopSpamming->Tick += gcnew System::EventHandler(this, &ModelForm::timerStopSpamming_Tick);
-			// 
-			// label9
-			// 
-			this->label9->AutoSize = true;
-			this->label9->ForeColor = System::Drawing::Color::Silver;
-			this->label9->Location = System::Drawing::Point(1158, 641);
-			this->label9->Name = L"label9";
-			this->label9->Size = System::Drawing::Size(82, 31);
-			this->label9->TabIndex = 18;
-			this->label9->Text = L"label9";
-			// 
-			// label7
-			// 
-			this->label7->AutoSize = true;
-			this->label7->ForeColor = System::Drawing::Color::Silver;
-			this->label7->Location = System::Drawing::Point(1291, 402);
-			this->label7->Name = L"label7";
-			this->label7->Size = System::Drawing::Size(82, 31);
-			this->label7->TabIndex = 22;
-			this->label7->Text = L"label7";
-			// 
-			// label8
-			// 
-			this->label8->AutoSize = true;
-			this->label8->ForeColor = System::Drawing::Color::Silver;
-			this->label8->Location = System::Drawing::Point(1379, 402);
-			this->label8->Name = L"label8";
-			this->label8->Size = System::Drawing::Size(82, 31);
-			this->label8->TabIndex = 21;
-			this->label8->Text = L"label8";
-			// 
-			// label10
-			// 
-			this->label10->AutoSize = true;
-			this->label10->ForeColor = System::Drawing::Color::Silver;
-			this->label10->Location = System::Drawing::Point(1291, 444);
-			this->label10->Name = L"label10";
-			this->label10->Size = System::Drawing::Size(96, 31);
-			this->label10->TabIndex = 20;
-			this->label10->Text = L"label10";
-			// 
-			// label11
-			// 
-			this->label11->AutoSize = true;
-			this->label11->ForeColor = System::Drawing::Color::Silver;
-			this->label11->Location = System::Drawing::Point(1379, 444);
-			this->label11->Name = L"label11";
-			this->label11->Size = System::Drawing::Size(96, 31);
-			this->label11->TabIndex = 19;
-			this->label11->Text = L"label11";
-			// 
-			// label12
-			// 
-			this->label12->AutoSize = true;
-			this->label12->ForeColor = System::Drawing::Color::Silver;
-			this->label12->Location = System::Drawing::Point(1291, 641);
-			this->label12->Name = L"label12";
-			this->label12->Size = System::Drawing::Size(96, 31);
-			this->label12->TabIndex = 24;
-			this->label12->Text = L"label12";
-			// 
-			// label13
-			// 
-			this->label13->AutoSize = true;
-			this->label13->ForeColor = System::Drawing::Color::Silver;
-			this->label13->Location = System::Drawing::Point(1379, 641);
-			this->label13->Name = L"label13";
-			this->label13->Size = System::Drawing::Size(96, 31);
-			this->label13->TabIndex = 23;
-			this->label13->Text = L"label13";
-			// 
-			// label14
-			// 
-			this->label14->AutoSize = true;
-			this->label14->ForeColor = System::Drawing::Color::Silver;
-			this->label14->Location = System::Drawing::Point(1144, 784);
-			this->label14->Name = L"label14";
-			this->label14->Size = System::Drawing::Size(96, 31);
-			this->label14->TabIndex = 25;
-			this->label14->Text = L"label14";
 			// 
 			// ModelForm
 			// 
@@ -336,18 +204,6 @@ namespace PublicTransportModel {
 			this->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(70)), static_cast<System::Int32>(static_cast<System::Byte>(73)),
 				static_cast<System::Int32>(static_cast<System::Byte>(79)));
 			this->ClientSize = System::Drawing::Size(1584, 861);
-			this->Controls->Add(this->label14);
-			this->Controls->Add(this->label12);
-			this->Controls->Add(this->label13);
-			this->Controls->Add(this->label7);
-			this->Controls->Add(this->label8);
-			this->Controls->Add(this->label10);
-			this->Controls->Add(this->label11);
-			this->Controls->Add(this->label9);
-			this->Controls->Add(this->label5);
-			this->Controls->Add(this->label6);
-			this->Controls->Add(this->label4);
-			this->Controls->Add(this->label3);
 			this->Controls->Add(this->buttonExit);
 			this->Controls->Add(this->colorValue);
 			this->Controls->Add(this->label2);
@@ -430,7 +286,6 @@ namespace PublicTransportModel {
 			MessageBox::Show("”кажите максимальную скорость машины", "ќшибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 		}
 
-		label9->Text = Convert::ToString(env->TaxiCars->Count);
 		// то есть перед отрисовкой машины такси имеем 4 заполненных пол€
 		// 1) координаты 2) направление 3) цвет 4) макс. скорость
 		
@@ -441,24 +296,7 @@ namespace PublicTransportModel {
 	}
 	private: System::Void timeAction_Tick(System::Object^ sender, System::EventArgs^ e) {
 		ScreenUpdater();
-		env->TimerTickActions(label14);
-
-		if (env->TaxiCars->Count) {
-			label3->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->npCrossroadIndex::get());
-			label4->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->npVerticeIndex::get());
-
-			label5->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->npCrossroadIndex2::get());
-			label6->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->npVerticeIndex2::get());
-
-			label7->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->nextPoint::get()->X - (TAXICAR_IMG_HEIGHT / 2));
-			label8->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->nextPoint::get()->Y - (TAXICAR_IMG_HEIGHT / 2));
-
-			label10->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->nextPoint2::get()->X - (TAXICAR_IMG_HEIGHT / 2));
-			label11->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->nextPoint2::get()->Y - (TAXICAR_IMG_HEIGHT / 2));
-
-			label12->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->xPos::get());
-			label13->Text = Convert::ToString(env->TaxiCars[env->TaxiCars->Count - 1]->yPos::get());
-		}
+		env->TimerTickActions();
 	}
 private: System::Void timerStopSpamming_Tick(System::Object^ sender, System::EventArgs^ e) {
 	timerStopSpamming->Enabled = false;
