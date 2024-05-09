@@ -7,30 +7,41 @@ using namespace System::Windows::Forms;
 
 public ref class TaxiCar {
 private:
-	int _xPos = 0;
-	int _yPos = 0;
-	int _maxVelocity; // можно объединить с текущей скоростью, ограничив её
-	int _currentVelocity = 0;
+	int _xPos;
+	int _yPos;
+
+	int _maxVelocity;
 	System::String^ _direction;
 	System::String^ _color;
-	int _fuelWaste = 1;
-	int _maxFuel = 100;
-	int _currentFuel = 100;
-	int _state = 0;
+	int _fuelWaste;
+	int _currentFuel;
+	int _state; // 0 - ожидание; 1 - выполнение заказа; 2 - низкий уровень топлива
 
+	// поля для 2-ой точки
 	Point^ _nextPoint;
 	int _npCrossroadIndex;
 	int _npVerticeIndex;
 
+	// поля для 3-ей точки
 	Point^ _nextPoint2;
 	int _npCrossroadIndex2;
 	int _npVerticeIndex2;
 
 public:
+	TaxiCar() {
+		_xPos = 0;
+		_yPos = 0;
+
+		_fuelWaste = 1;
+		_currentFuel = 100;
+		_state = 0;
+	}
+	~TaxiCar() {};
+
 	property int maxVelocity {
 		int get() { return _maxVelocity; }
 		void set(int _value) {
-			if (_value < 30) { _maxVelocity = 30; }
+			if (_value < 50) { _maxVelocity = 50; }
 			else if (_value > 200) { _maxVelocity = 200; }
 			else { _maxVelocity = _value; }
 		};
@@ -62,24 +73,18 @@ public:
 		}
 	};
 
-	property int currentVelocity {
-		int get() { return _currentVelocity; }
-	};
-
 	property int fuelWaste {
 		int get() { return _fuelWaste; }
 	};
 
-	property int maxFuel {
-		int get() { return _maxFuel; }
-	};
-
 	property int currentFuel {
 		int get() { return _currentFuel; }
+		void set(int _value) { _currentFuel = _value; }
 	};
 
 	property int state {
 		int get() { return _state; }
+		void set(int _value) { _state = _value; }
 	};
 
 	property Point^ nextPoint {
@@ -112,7 +117,7 @@ public:
 		void set(int _value) { _npVerticeIndex2 = _value; }
 	}
 
-	// метод описания движения и поворота
+	// метод описания движения и поворота в 0 состоянии машины (завершён)
 	void Move(array<array<Point^>^>^ Vertices) {
 		// в зависимости от направления (direction) меняются координаты x, y
 		if (_direction == "left") { _xPos -= SPEED; }
@@ -230,6 +235,13 @@ public:
 		}
 	}
 
+	// метод поиска пути
+	void WayFind(Passenger^ passenger) {
+		Point^ pasPoint = Point(passenger->xPos::get(), passenger->yPos::get());
+
+		//логика поиска пути
+	}
+
 };
 
 
@@ -237,17 +249,20 @@ public ref class MyEnvironment {
 private:
 	array<Point^>^ cordinates;
 	array<array<Point^>^>^ Vertices;
+	System::Collections::Generic::List<TaxiCar^>^ _TaxiCars;
 
 public:
-	System::Collections::Generic::List<TaxiCar^>^ TaxiCars;
-
 	MyEnvironment() {
-		TaxiCars = gcnew System::Collections::Generic::List<TaxiCar^>(0);
+		_TaxiCars = gcnew System::Collections::Generic::List<TaxiCar^>(0);
 		cordinates = gcnew array<Point^>(VERTEX_QUANTITY) { Point(151, 39), Point(151, 290), Point(151, 792),
 			Point(402, 39), Point(402, 290), Point(402, 541), Point(402, 792), Point(653, 39), Point(653, 290), Point(653, 541), Point(904, 290), Point(904, 541), Point(904, 792) };
 		Vertices = gcnew array<array<Point^>^>(VERTEX_QUANTITY);
 	}
 	~MyEnvironment() {};
+
+	property System::Collections::Generic::List<TaxiCar^>^ TaxiCars {
+		System::Collections::Generic::List<TaxiCar^>^ get() { return _TaxiCars; }
+	}
 
 	// метод генерации массива вершин по массиву координат
 	Void VerticesGen() {
@@ -262,7 +277,7 @@ public:
 		}
 	}
 
-	// метод генерации объекта машины такси
+	// метод генерации объекта машины такси (завершён)
 	void TaxiSpawn() {
 		Random^ rndGen = gcnew Random();
 		if (TaxiCars->Count < MAX_TAXICARS) {
@@ -296,6 +311,10 @@ public:
 					if ((a + b) % 2) { break; }
 				}
 			}
+
+			// ГЕНЕРАЦИЯ 3-ЕЙ ТОЧКИ. отличие от генерации 2-ой в том, что теперь точки могут быть на одном перекрёстке
+			// (однако новый перекрёсток не должен быть тем, откуда только что приехала машина)
+			// это необходимо, так как может возникнуть ситуация перекрёстка, который соединён только с одним другим перекрёстком (откуда и приехала машина)
 
 			bool a1 = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][verticeIndex3]->X); // совпал X у 2-ой и 3-й точек
 			bool b1 = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][verticeIndex3]->Y); // совпал Y у 2-ой и 3-й точек
@@ -347,18 +366,9 @@ public:
 				}
 			}
 
-			
-			// ГЕНЕРАЦИЯ 3-ЕЙ ТОЧКИ. отличие от генерации 2-ой в том, что теперь точки могут быть на одном перекрёстке
-			// (однако новый перекрёсток не должен быть тем, откуда только что приехала машина)
-			// это необходимо, так как может возникнуть ситуация перекрёстка, который соединён только с одним другим перекрёстком (откуда и приехала машина)
-
-			// !!ВОЗМОЖНО СТОИТ ПЕРЕМЕСТИТЬ В МЕТОД Move КЛАССА TaxiCar!!
-
-
 			Point^ spawnPoint = Vertices[crossroadIndex1][verticeIndex1];
 			Point^ nextPoint = Vertices[crossroadIndex2][verticeIndex2];
 			Point^ nextPoint2 = Vertices[crossroadIndex3][verticeIndex3];
-
 
 			//заполнение полей объекта свойствами
 			TaxiCars[TaxiCars->Count - 1]->nextPoint::set(nextPoint);
@@ -404,16 +414,45 @@ public:
 };
 
 
-public ref class RoadVertices {
+public ref class Passenger {
 private:
-	array<Point^>^ _cordinate;
-	int vertexId = 1;
+	int _xPos;
+	int _yPos;
+	
+	int _state; // 0 - выбор машины; 1 - ожидание машины; 2 - в пункте прибытия
+	MyEnvironment^ env;
 
 public:
-	property array<Point^>^ cordinate {
-		array<Point^>^ get() { return _cordinate; }
-		void set(array<Point^>^ _value) {
-			_cordinate = _value;
+	Passenger() {
+		_xPos = 0;
+		_yPos = 0;
+		_state = 0;
+	}
+	~Passenger() {};
+
+public:
+	property int xPos {
+		int get() { return _xPos; }
+		void set(int _value) { _xPos = _value; }
+	}
+
+	property int yPos {
+		int get() { return _yPos; }
+		void set(int _value) { _yPos = _value; }
+	}
+
+	property int state {
+		int get() { return _state; }
+		void set(int _value) { _state = _value; }
+	}
+
+	void TaxiChoise() {
+		if (env->TaxiCars->Count) {
+			Random^ rndGen = gcnew Random();
+
+			TaxiCar^ ServiceCar = env->TaxiCars[rndGen->Next(0, env->TaxiCars->Count)];
+
+			if (ServiceCar->state::get() != 2) { ServiceCar->state::set(1); }
 		}
 	}
 };
