@@ -15,29 +15,16 @@ namespace PublicTransportModel {
 	/// </summary>
 	public ref class ModelForm : public System::Windows::Forms::Form
 	{
-
-
 		   Graphics^ graf;
 		   Bitmap^ myBitmap;
 	private: MyEnvironment^ env;
 	private: System::Windows::Forms::Timer^ timeAction;
-
-
-
-
-
-
-
 	private: System::Windows::Forms::Timer^ timerStopSpamming;
-
-
-
-
-
-
-
-
-
+	private: System::Windows::Forms::Label^ label3;
+	private: System::Windows::Forms::Label^ label4;
+	private: System::Windows::Forms::Label^ label5;
+	private: System::Windows::Forms::Label^ label6;
+	private: System::Windows::Forms::Label^ label7;
 		   Bitmap^ background;
 
 	public:
@@ -68,21 +55,13 @@ namespace PublicTransportModel {
 	private: System::Windows::Forms::Label^ label2;
 	private: System::Windows::Forms::TextBox^ maxVelocityValue;
 
-
-
-
 	private: System::Windows::Forms::ComboBox^ colorValue;
 	private: System::Windows::Forms::PictureBox^ pictureBox1;
 	private: System::Windows::Forms::Button^ buttonExit;
 
 	private: System::ComponentModel::IContainer^ components;
 
-
-
-
-
 	protected:
-
 
 	private:
 		/// <summary>
@@ -108,6 +87,11 @@ namespace PublicTransportModel {
 			this->buttonExit = (gcnew System::Windows::Forms::Button());
 			this->timeAction = (gcnew System::Windows::Forms::Timer(this->components));
 			this->timerStopSpamming = (gcnew System::Windows::Forms::Timer(this->components));
+			this->label3 = (gcnew System::Windows::Forms::Label());
+			this->label4 = (gcnew System::Windows::Forms::Label());
+			this->label5 = (gcnew System::Windows::Forms::Label());
+			this->label6 = (gcnew System::Windows::Forms::Label());
+			this->label7 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -198,12 +182,62 @@ namespace PublicTransportModel {
 			this->timerStopSpamming->Interval = 500;
 			this->timerStopSpamming->Tick += gcnew System::EventHandler(this, &ModelForm::timerStopSpamming_Tick);
 			// 
+			// label3
+			// 
+			this->label3->AutoSize = true;
+			this->label3->Location = System::Drawing::Point(1114, 399);
+			this->label3->Name = L"label3";
+			this->label3->Size = System::Drawing::Size(82, 31);
+			this->label3->TabIndex = 12;
+			this->label3->Text = L"label3";
+			// 
+			// label4
+			// 
+			this->label4->AutoSize = true;
+			this->label4->Location = System::Drawing::Point(1114, 441);
+			this->label4->Name = L"label4";
+			this->label4->Size = System::Drawing::Size(82, 31);
+			this->label4->TabIndex = 13;
+			this->label4->Text = L"label4";
+			// 
+			// label5
+			// 
+			this->label5->AutoSize = true;
+			this->label5->Location = System::Drawing::Point(1114, 529);
+			this->label5->Name = L"label5";
+			this->label5->Size = System::Drawing::Size(82, 31);
+			this->label5->TabIndex = 14;
+			this->label5->Text = L"label5";
+			// 
+			// label6
+			// 
+			this->label6->AutoSize = true;
+			this->label6->Location = System::Drawing::Point(1281, 399);
+			this->label6->Name = L"label6";
+			this->label6->Size = System::Drawing::Size(82, 31);
+			this->label6->TabIndex = 15;
+			this->label6->Text = L"label6";
+			// 
+			// label7
+			// 
+			this->label7->AutoSize = true;
+			this->label7->Location = System::Drawing::Point(1281, 441);
+			this->label7->Name = L"label7";
+			this->label7->Size = System::Drawing::Size(82, 31);
+			this->label7->TabIndex = 16;
+			this->label7->Text = L"label7";
+			// 
 			// ModelForm
 			// 
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::None;
 			this->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(70)), static_cast<System::Int32>(static_cast<System::Byte>(73)),
 				static_cast<System::Int32>(static_cast<System::Byte>(79)));
 			this->ClientSize = System::Drawing::Size(1584, 861);
+			this->Controls->Add(this->label7);
+			this->Controls->Add(this->label6);
+			this->Controls->Add(this->label5);
+			this->Controls->Add(this->label4);
+			this->Controls->Add(this->label3);
 			this->Controls->Add(this->buttonExit);
 			this->Controls->Add(this->colorValue);
 			this->Controls->Add(this->label2);
@@ -246,7 +280,6 @@ namespace PublicTransportModel {
 		   Void DrawTaxiCars(Graphics^ _graf) {
 			   for (int i = 0; i < env->TaxiCars->Count; i++) {
 				   Bitmap^ taxiImg = gcnew Bitmap(String::Format("..\\forPTM\\taxiCar{0}.png", env->TaxiCars[i]->color::get()));
-				// Bitmap^ taxiImg = gcnew Bitmap("..\\forPTM\\bus-export-export.png");
 
 				   if (env->TaxiCars[i]->direction::get() == "left") { taxiImg->RotateFlip(RotateFlipType::Rotate270FlipNone); }
 				   if (env->TaxiCars[i]->direction::get() == "right") { taxiImg->RotateFlip(RotateFlipType::Rotate90FlipNone); }
@@ -257,10 +290,19 @@ namespace PublicTransportModel {
 			   }
 		   }
 
+		   Void DrawPassengers(Graphics^ _graf) {
+			   for (int i = 0; i < env->Passengers->Count; i++) {
+				   Bitmap^ passengerImg = gcnew Bitmap("..\\forPTM\\passenger.png");
+
+				   _graf->DrawImage(passengerImg, env->Passengers[i]->xPos::get(), env->Passengers[i]->yPos::get(), 16, 16);
+			   }
+		   }
+
 		   Void ScreenUpdater() {
 			   graf = graf->FromImage(myBitmap);
 			   graf->Clear(Color::White);
 			   DrawTaxiCars(graf);
+			   DrawPassengers(graf);
 			   myBitmap->MakeTransparent(Color::White);
 			   pictureBox1->Image = myBitmap;
 			   delete graf;
@@ -296,7 +338,7 @@ namespace PublicTransportModel {
 	}
 	private: System::Void timeAction_Tick(System::Object^ sender, System::EventArgs^ e) {
 		ScreenUpdater();
-		env->TimerTickActions();
+		env->TimerTickActions(label3, label4, label5, label6, label7);
 	}
 private: System::Void timerStopSpamming_Tick(System::Object^ sender, System::EventArgs^ e) {
 	timerStopSpamming->Enabled = false;

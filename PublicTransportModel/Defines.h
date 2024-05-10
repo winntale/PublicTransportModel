@@ -7,4 +7,7 @@
 #define TAXICAR_IMG_WIDTH 32
 #define SPEED _maxVelocity / 30
 
+#define PASSENGER_OFFSET 35
+#define PASSENGER_HEIGHT 16
+
 #define ANTISPAM_INTERVAL 500

@@ -236,12 +236,55 @@ public:
 	}
 
 	// метод поиска пути
-	void WayFind(Passenger^ passenger) {
-		Point^ pasPoint = Point(passenger->xPos::get(), passenger->yPos::get());
+	//void WayFind(Passenger^ passenger) {
+	//	Point^ pasPoint = Point(passenger->xPos::get(), passenger->yPos::get());
 
-		//логика поиска пути
+	//	//логика поиска пути
+	//}
+
+};
+
+public ref class Passenger {
+private:
+	int _xPos;
+	int _yPos;
+
+	int _state; // 0 - выбор машины; 1 - ожидание машины; 2 - в пункте прибытия
+//	MyEnvironment^ env;
+
+public:
+	Passenger() {
+		_xPos = 0;
+		_yPos = 0;
+		_state = 0;
+	}
+	~Passenger() {};
+
+public:
+	property int xPos {
+		int get() { return _xPos; }
+		void set(int _value) { _xPos = _value; }
 	}
 
+	property int yPos {
+		int get() { return _yPos; }
+		void set(int _value) { _yPos = _value; }
+	}
+
+	property int state {
+		int get() { return _state; }
+		void set(int _value) { _state = _value; }
+	}
+
+	//void TaxiChoise() {
+	//	if (env->Passengers->Count) {
+	//		Random^ rndGen = gcnew Random();
+
+	//		TaxiCar^ ServiceCar = env->TaxiCars[rndGen->Next(0, env->TaxiCars->Count)];
+
+	//		if (ServiceCar->state::get() != 2) { ServiceCar->state::set(1); }
+	//	}
+	//}
 };
 
 
@@ -249,11 +292,14 @@ public ref class MyEnvironment {
 private:
 	array<Point^>^ cordinates;
 	array<array<Point^>^>^ Vertices;
+	array<array<Point^>^>^ Sidewalks;
 	System::Collections::Generic::List<TaxiCar^>^ _TaxiCars;
+	System::Collections::Generic::List<Passenger^>^ _Passengers;
 
 public:
 	MyEnvironment() {
 		_TaxiCars = gcnew System::Collections::Generic::List<TaxiCar^>(0);
+		_Passengers = gcnew System::Collections::Generic::List<Passenger^>(0);
 		cordinates = gcnew array<Point^>(VERTEX_QUANTITY) { Point(151, 39), Point(151, 290), Point(151, 792),
 			Point(402, 39), Point(402, 290), Point(402, 541), Point(402, 792), Point(653, 39), Point(653, 290), Point(653, 541), Point(904, 290), Point(904, 541), Point(904, 792) };
 		Vertices = gcnew array<array<Point^>^>(VERTEX_QUANTITY);
@@ -264,8 +310,12 @@ public:
 		System::Collections::Generic::List<TaxiCar^>^ get() { return _TaxiCars; }
 	}
 
+	property System::Collections::Generic::List<Passenger^>^ Passengers {
+		System::Collections::Generic::List<Passenger^>^ get() { return _Passengers; }
+	}
+
 	// метод генерации массива вершин по массиву координат
-	Void VerticesGen() {
+	void VerticesGen() {
 		for (int i = 0; i < VERTEX_QUANTITY; i++) {
 			Vertices[i] = gcnew array<Point^>(4);
 		}
@@ -408,51 +458,72 @@ public:
 		// 2) направление движения (direction)
 	}
 
-	void TimerTickActions() {
-		for (int i = 0; i < TaxiCars->Count; i++) TaxiCars[i]->Move(Vertices);
-	}
-};
+	void PassengerSpawn(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7) {
+		Random^ rndGen = gcnew Random();
+		int randomNumber = rndGen->Next(0, 101);
+
+		if (TaxiCars->Count && (Passengers->Count < TaxiCars->Count) && (randomNumber > 49)) {
+			Passengers->Add(gcnew Passenger());
+
+			int crossroadIndex1 = rndGen->Next(0, VERTEX_QUANTITY);
+			int crossroadIndex2 = rndGen->Next(0, VERTEX_QUANTITY);
+
+			int verticeIndex1 = rndGen->Next(0, 4);
+			int verticeIndex2 = rndGen->Next(0, 4);
 
 
-public ref class Passenger {
-private:
-	int _xPos;
-	int _yPos;
-	
-	int _state; // 0 - выбор машины; 1 - ожидание машины; 2 - в пункте прибытия
-	MyEnvironment^ env;
+			bool a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][verticeIndex2]->X); // совпал X у 2-х точек (1-ая и 2-ая)
+			bool b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][verticeIndex2]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
 
-public:
-	Passenger() {
-		_xPos = 0;
-		_yPos = 0;
-		_state = 0;
-	}
-	~Passenger() {};
+			// !((a + b) % 2) - цикл меняет координаты точки до тех пор, пока не произойдёт ТОЛЬКО одно из 2х событий (либо a, либо b)
+			// || (crossroadIndex1 == crossroadIndex2) - условие нужно для того, чтобы избежать ситуации взятия двух точек одного перекрёстка
+			while (!((a + b) % 2) || (crossroadIndex1 == crossroadIndex2)) {
+				crossroadIndex2 = rndGen->Next(0, VERTEX_QUANTITY);
 
-public:
-	property int xPos {
-		int get() { return _xPos; }
-		void set(int _value) { _xPos = _value; }
-	}
+				// цикл определяет, есть ли путь до 2-го перекрёстка
+				for (int i = 0; i < 4; i++) {
+					a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][i]->X);
+					b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][i]->Y);
+					if ((a + b) % 2) { break; }
+				}
+			}
 
-	property int yPos {
-		int get() { return _yPos; }
-		void set(int _value) { _yPos = _value; }
-	}
+			if (a && !b) { // машина изначально поедет по вертикали (корректировка 1-ой точки)
+				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2); } // вниз
+				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2) + 1; } // вверх
+				verticeIndex2 = verticeIndex1 % 2;
+				Point^ firstPoint = Vertices[crossroadIndex1][verticeIndex1];
+				Point^ secondPoint = Vertices[crossroadIndex2][verticeIndex2];
 
-	property int state {
-		int get() { return _state; }
-		void set(int _value) { _state = _value; }
-	}
+				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, (verticeIndex1 % 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2)));
+				Passengers[Passengers->Count - 1]->yPos::set(rndGen->Next((Math::Min(firstPoint->Y, secondPoint->Y) + 50), (Math::Max(firstPoint->Y, secondPoint->Y) - 50)));
+			}
+			else if (b && !a) { // машина изначально поедет по горизонтали
+				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = rndGen->Next(2, 4); } // направо
+				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = rndGen->Next(0, 2); } // налево
+				verticeIndex2 = Math::Floor(verticeIndex1 / 2) * 2;
+				Point^ firstPoint = Vertices[crossroadIndex1][verticeIndex1];
+				Point^ secondPoint = Vertices[crossroadIndex2][verticeIndex2];
 
-	void TaxiChoise() {
-		if (env->TaxiCars->Count) {
-			Random^ rndGen = gcnew Random();
+				Passengers[Passengers->Count - 1]->xPos::set(rndGen->Next((Math::Min(firstPoint->X, secondPoint->X) + 50), (Math::Max(firstPoint->X, secondPoint->X) - 50)));
+				Passengers[Passengers->Count - 1]->yPos::set(firstPoint->Y - (Math::Pow(-1, Math::Floor(verticeIndex1 / 2)) * PASSENGER_OFFSET));
+			}
 
-			TaxiCar^ ServiceCar = env->TaxiCars[rndGen->Next(0, env->TaxiCars->Count)];
+			label3->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex1, verticeIndex1));
+			label4->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex2, verticeIndex2));
 
-			if (ServiceCar->state::get() != 2) { ServiceCar->state::set(1); }
+			label5->Text = Convert::ToString(String::Format("{0} {1}", Passengers[Passengers->Count - 1]->xPos::get(), Passengers[Passengers->Count - 1]->yPos::get()));
+
+			label6->Text = Convert::ToString(String::Format("{0} {1}", Vertices[crossroadIndex1][verticeIndex1]->X, Vertices[crossroadIndex1][verticeIndex1]->Y));
+			label7->Text = Convert::ToString(String::Format("{0} {1}", Vertices[crossroadIndex2][verticeIndex2]->X, Vertices[crossroadIndex2][verticeIndex2]->Y));
 		}
 	}
+
+	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7) {
+		for (int i = 0; i < TaxiCars->Count; i++) TaxiCars[i]->Move(Vertices);
+		PassengerSpawn(label3, label4, label5, label6, label7);
+	}
+	
 };
+
+
