@@ -457,7 +457,7 @@ public:
 		// 2) направление движения (direction)
 	}
 
-	void PassengerSpawn(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7) {
+	void PassengerSpawn(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8) {
 		Random^ rndGen = gcnew Random();
 		int randomNumber = rndGen->Next(0, 101);
 
@@ -508,23 +508,36 @@ public:
 				int countIgnored = 0;
 				for (int i = 0; i < VERTEX_QUANTITY; i++) {
 					Point^ thirdPoint = Vertices[i][0];
-					
-					if ((thirdPoint->Y >= Math::Min(Vertices[crossroadIndex1][0]->Y, Vertices[crossroadIndex2][0]->Y)) && (thirdPoint->Y <= Math::Max(Vertices[crossroadIndex1][2]->Y, Vertices[crossroadIndex2][2]->Y))) {
-						ignoredIntervals[countIgnored][0] = thirdPoint->Y - 50;
-						ignoredIntervals[countIgnored][1] = thirdPoint->Y + 50;
+					bool isExist = false;
 
-						countIgnored++;
+					if ((thirdPoint->Y >= Math::Min(Vertices[crossroadIndex1][0]->Y, Vertices[crossroadIndex2][0]->Y))
+						&& (thirdPoint->Y <= Math::Max(Vertices[crossroadIndex1][2]->Y, Vertices[crossroadIndex2][2]->Y))) {
+						for (int j = 0; j < countIgnored; j++) {
+							if ((thirdPoint->Y - 10 == ignoredIntervals[j][0]) && (thirdPoint->Y + 40 == ignoredIntervals[j][1])) {
+								isExist = true;
+								break;
+							}
+						}
+
+						if (!isExist) {
+							ignoredIntervals[countIgnored][0] = thirdPoint->Y - 10;
+							ignoredIntervals[countIgnored][1] = thirdPoint->Y + 40;
+
+							countIgnored++;
+						}
 					}
 				}
 
 				array<int>^ localRndY = gcnew array<int>(countIgnored - 1);
+				label8->Text = "localRnd ";
 				for (int i = 0; i < countIgnored - 1; i++) {
 				//	localRndY[i] = rndGen->Next(Math::Min(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]), Math::Max(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]));
 					localRndY[i] = ignoredIntervals[i][1];
+					label8->Text += Convert::ToString(localRndY[i] + " ");
 				}
 
 				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, (verticeIndex1 % 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
-				Passengers[Passengers->Count - 1]->yPos::set(localRndY[rndGen->Next(0, countIgnored - 1)]);
+				Passengers[Passengers->Count - 1]->yPos::set(localRndY[rndGen->Next(0, countIgnored - 2)]);
 				//Passengers[Passengers->Count - 1]->yPos::set(rndGen->Next((Math::Min(firstPoint->Y, secondPoint->Y) + 50), (Math::Max(firstPoint->Y, secondPoint->Y) - 50)));
 			}
 			else if (b && !a) { // машина изначально поедет по горизонтали
@@ -548,23 +561,38 @@ public:
 				int countIgnored = 0;
 				for (int i = 0; i < VERTEX_QUANTITY; i++) {
 					Point^ thirdPoint = Vertices[i][0];
+					bool isExist = false;
 
-					if ((thirdPoint->X >= Math::Min(Vertices[crossroadIndex1][0]->X, Vertices[crossroadIndex2][0]->X)) && (thirdPoint->X <= Math::Max(Vertices[crossroadIndex1][2]->X, Vertices[crossroadIndex2][2]->X))) {
-						ignoredIntervals[countIgnored][0] = thirdPoint->Y - 50;
-						ignoredIntervals[countIgnored][1] = thirdPoint->Y + 50;
+					if ((thirdPoint->X >= Math::Min(Vertices[crossroadIndex1][0]->X, Vertices[crossroadIndex2][0]->X))
+						&& (thirdPoint->X <= Math::Max(Vertices[crossroadIndex1][2]->X, Vertices[crossroadIndex2][2]->X))) {
+						for (int j = 0; j < countIgnored; j++) {
+							if ((thirdPoint->X - 10 == ignoredIntervals[j][0]) && (thirdPoint->X + 40 == ignoredIntervals[j][1])) {
+								isExist = true;
+								break;
+							}
+						}
+						
+						if (!isExist) {
+							ignoredIntervals[countIgnored][0] = thirdPoint->X - 10;
+							ignoredIntervals[countIgnored][1] = thirdPoint->X + 40;
 
-						countIgnored++;
+							countIgnored++;
+						}
 					}
 				}
 
 				array<int>^ localRndY = gcnew array<int>(countIgnored - 1);
+				label8->Text = "localRnd ";
 				for (int i = 0; i < countIgnored - 1; i++) {
 					//	localRndY[i] = rndGen->Next(Math::Min(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]), Math::Max(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]));
 					localRndY[i] = ignoredIntervals[i][1];
+					label8->Text += Convert::ToString(localRndY[i] + " ");
 				}
 
-				Passengers[Passengers->Count - 1]->xPos::set(localRndY[rndGen->Next(0, countIgnored - 1)]);
+				Passengers[Passengers->Count - 1]->xPos::set(localRndY[rndGen->Next(0, countIgnored - 2)]);
 				Passengers[Passengers->Count - 1]->yPos::set(firstPoint->Y - (Math::Pow(-1, Math::Floor(verticeIndex1 / 2)) * PASSENGER_OFFSET));
+
+				
 			}
 
 			label3->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex1, verticeIndex1));
@@ -574,12 +602,14 @@ public:
 
 			label6->Text = Convert::ToString(String::Format("{0} {1}", Vertices[crossroadIndex1][verticeIndex1]->X, Vertices[crossroadIndex1][verticeIndex1]->Y));
 			label7->Text = Convert::ToString(String::Format("{0} {1}", Vertices[crossroadIndex2][verticeIndex2]->X, Vertices[crossroadIndex2][verticeIndex2]->Y));
+
+			
 		}
 	}
 
-	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7) {
+	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8) {
 		for (int i = 0; i < TaxiCars->Count; i++) TaxiCars[i]->Move(Vertices);
-		PassengerSpawn(label3, label4, label5, label6, label7);
+		PassengerSpawn(label3, label4, label5, label6, label7, label8);
 	}
 	
 };
