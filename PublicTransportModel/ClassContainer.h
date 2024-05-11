@@ -519,7 +519,8 @@ public:
 
 				array<int>^ localRndY = gcnew array<int>(countIgnored - 1);
 				for (int i = 0; i < countIgnored - 1; i++) {
-					localRndY[i] = rndGen->Next(Math::Min(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]), Math::Max(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]));
+				//	localRndY[i] = rndGen->Next(Math::Min(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]), Math::Max(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]));
+					localRndY[i] = ignoredIntervals[i][1];
 				}
 
 				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, (verticeIndex1 % 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
@@ -533,7 +534,36 @@ public:
 				Point^ firstPoint = Vertices[crossroadIndex1][verticeIndex1];
 				Point^ secondPoint = Vertices[crossroadIndex2][verticeIndex2];
 
-				Passengers[Passengers->Count - 1]->xPos::set(rndGen->Next((Math::Min(firstPoint->X, secondPoint->X) + 50), (Math::Max(firstPoint->X, secondPoint->X) - 50)));
+				array<array<int>^>^ ignoredIntervals = gcnew array<array<int>^>(VERTEX_QUANTITY);
+				for (int i = 0; i < VERTEX_QUANTITY; i++) {
+					ignoredIntervals[i] = gcnew array<int>(2);
+				}
+
+				for (int i = 0; i < VERTEX_QUANTITY; i++) {
+					for (int j = 0; j < 2; j++) {
+						ignoredIntervals[i][j] = 0;
+					}
+				}
+
+				int countIgnored = 0;
+				for (int i = 0; i < VERTEX_QUANTITY; i++) {
+					Point^ thirdPoint = Vertices[i][0];
+
+					if ((thirdPoint->X >= Math::Min(Vertices[crossroadIndex1][0]->X, Vertices[crossroadIndex2][0]->X)) && (thirdPoint->X <= Math::Max(Vertices[crossroadIndex1][2]->X, Vertices[crossroadIndex2][2]->X))) {
+						ignoredIntervals[countIgnored][0] = thirdPoint->Y - 50;
+						ignoredIntervals[countIgnored][1] = thirdPoint->Y + 50;
+
+						countIgnored++;
+					}
+				}
+
+				array<int>^ localRndY = gcnew array<int>(countIgnored - 1);
+				for (int i = 0; i < countIgnored - 1; i++) {
+					//	localRndY[i] = rndGen->Next(Math::Min(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]), Math::Max(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]));
+					localRndY[i] = ignoredIntervals[i][1];
+				}
+
+				Passengers[Passengers->Count - 1]->xPos::set(localRndY[rndGen->Next(0, countIgnored - 1)]);
 				Passengers[Passengers->Count - 1]->yPos::set(firstPoint->Y - (Math::Pow(-1, Math::Floor(verticeIndex1 / 2)) * PASSENGER_OFFSET));
 			}
 
