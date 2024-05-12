@@ -2,7 +2,6 @@
 using namespace System;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
-using namespace System::Collections::Generic;
 
 #include "Defines.h"
 
@@ -289,17 +288,6 @@ public:
 };
 
 
-// дочерний класс от компэрэра для написания в нём метода сравнения массивов
-ref class FirstElementComparer : IComparer<List<int>^>
-{
-public:
-	virtual int Compare(List<int>^ x, List<int>^ y)
-	{
-		return x[0].CompareTo(y[0]);
-	}
-};
-
-
 public ref class MyEnvironment {
 private:
 	array<Point^>^ cordinates;
@@ -469,8 +457,7 @@ public:
 		// 2) направление движения (direction)
 	}
 
-
-	void PassengerSpawn(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9) {
+	void PassengerSpawn(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7) {
 		Random^ rndGen = gcnew Random();
 		int randomNumber = rndGen->Next(0, 101);
 
@@ -492,8 +479,6 @@ public:
 			while (!((a + b) % 2) || (crossroadIndex1 == crossroadIndex2)) {
 				crossroadIndex2 = rndGen->Next(0, VERTEX_QUANTITY);
 
-				// добавить внутрь вайла проверку на самую маленькую разность совпадающих координат перекрёстков путём генерации массива ВСЕХ перекрёстков одной координаты
-
 				// цикл определяет, есть ли путь до 2-го перекрёстка
 				for (int i = 0; i < 4; i++) {
 					a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][i]->X);
@@ -502,82 +487,84 @@ public:
 				}
 			}
 
-			if (a && !b) { // пассажир появится на вертикальной линии
+			if (a && !b) { // машина изначально поедет по вертикали (корректировка 1-ой точки)
 				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2); } // вниз
 				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2) + 1; } // вверх
 				verticeIndex2 = verticeIndex1 % 2;
 				Point^ firstPoint = Vertices[crossroadIndex1][verticeIndex1];
 				Point^ secondPoint = Vertices[crossroadIndex2][verticeIndex2];
 
-				List<int>^ ignoredIntervals = gcnew List<int>();
+				array<array<int>^>^ ignoredIntervals = gcnew array<array<int>^>(VERTEX_QUANTITY);
+				for (int i = 0; i < VERTEX_QUANTITY; i++) {
+					ignoredIntervals[i] = gcnew array<int>(2);
+				}
+				
+				for (int i = 0; i < VERTEX_QUANTITY; i++) {
+					for (int j = 0; j < 2; j++) {
+						ignoredIntervals[i][j] = 0;
+					}
+				}
 
-				label9->Text = "ignoredIntervals ";
+				int countIgnored = 0;
 				for (int i = 0; i < VERTEX_QUANTITY; i++) {
 					Point^ thirdPoint = Vertices[i][0];
+					
+					if ((thirdPoint->Y >= Math::Min(Vertices[crossroadIndex1][0]->Y, Vertices[crossroadIndex2][0]->Y)) && (thirdPoint->Y <= Math::Max(Vertices[crossroadIndex1][2]->Y, Vertices[crossroadIndex2][2]->Y))) {
+						ignoredIntervals[countIgnored][0] = thirdPoint->Y - 50;
+						ignoredIntervals[countIgnored][1] = thirdPoint->Y + 50;
 
-					if ((thirdPoint->Y >= Math::Min(Vertices[crossroadIndex1][0]->Y, Vertices[crossroadIndex2][0]->Y))
-						&& (thirdPoint->Y <= Math::Max(Vertices[crossroadIndex1][2]->Y, Vertices[crossroadIndex2][2]->Y))
-						&& !(ignoredIntervals->Contains(thirdPoint->Y - 20)))
-					{ ignoredIntervals->Add(thirdPoint->Y - 20); }
+						countIgnored++;
+					}
 				}
 
-				ignoredIntervals->Sort();
-
-				for (int i = 0; i < ignoredIntervals->Count; i++) {
-					label9->Text += Convert::ToString(String::Format("[{0}, {1}]", ignoredIntervals[i],
-						ignoredIntervals[i] + 50));
-				}
-
-				List<int>^ localRndY = gcnew List<int>(0);
-				label8->Text = "localRnd ";
-				for (int i = 0; i < ignoredIntervals->Count - 1; i++) {
-					localRndY->Add(rndGen->Next(ignoredIntervals[i] + 50, ignoredIntervals[i + 1]));
-					label8->Text += Convert::ToString(localRndY[i] + " ");
+				array<int>^ localRndY = gcnew array<int>(countIgnored - 1);
+				for (int i = 0; i < countIgnored - 1; i++) {
+				//	localRndY[i] = rndGen->Next(Math::Min(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]), Math::Max(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]));
+					localRndY[i] = ignoredIntervals[i][1] + rndGen->Next(0, 50);
 				}
 
 				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, (verticeIndex1 % 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
-				Passengers[Passengers->Count - 1]->yPos::set(localRndY[rndGen->Next(0, localRndY->Count)]);
+				Passengers[Passengers->Count - 1]->yPos::set(localRndY[rndGen->Next(0, countIgnored - 1)]);
 				//Passengers[Passengers->Count - 1]->yPos::set(rndGen->Next((Math::Min(firstPoint->Y, secondPoint->Y) + 50), (Math::Max(firstPoint->Y, secondPoint->Y) - 50)));
 			}
-			else if (b && !a) { // // пассажир появится на горизонтальной линии
+			else if (b && !a) { // машина изначально поедет по горизонтали
 				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = rndGen->Next(2, 4); } // направо
 				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = rndGen->Next(0, 2); } // налево
 				verticeIndex2 = Math::Floor(verticeIndex1 / 2) * 2;
 				Point^ firstPoint = Vertices[crossroadIndex1][verticeIndex1];
 				Point^ secondPoint = Vertices[crossroadIndex2][verticeIndex2];
 
-				List<int>^ ignoredIntervals = gcnew List<int>();
-
-				label9->Text = "ignoredIntervals ";
+				array<array<int>^>^ ignoredIntervals = gcnew array<array<int>^>(VERTEX_QUANTITY);
 				for (int i = 0; i < VERTEX_QUANTITY; i++) {
-					Point^ thirdPoint = Vertices[i][0];
+					ignoredIntervals[i] = gcnew array<int>(2);
+				}
 
-					if ((thirdPoint->X >= Math::Min(Vertices[crossroadIndex1][0]->X, Vertices[crossroadIndex2][0]->X))
-						&& (thirdPoint->X <= Math::Max(Vertices[crossroadIndex1][2]->X, Vertices[crossroadIndex2][2]->X))
-						&& !(ignoredIntervals->Contains(thirdPoint->X - 20)))
-					{
-						ignoredIntervals->Add(thirdPoint->X - 20);
+				for (int i = 0; i < VERTEX_QUANTITY; i++) {
+					for (int j = 0; j < 2; j++) {
+						ignoredIntervals[i][j] = 0;
 					}
 				}
 
-				ignoredIntervals->Sort();
+				int countIgnored = 0;
+				for (int i = 0; i < VERTEX_QUANTITY; i++) {
+					Point^ thirdPoint = Vertices[i][0];
 
-				for (int i = 0; i < ignoredIntervals->Count; i++) {
-					label9->Text += Convert::ToString(String::Format("[{0}, {1}]", ignoredIntervals[i],
-						ignoredIntervals[i] + 50));
+					if ((thirdPoint->X >= Math::Min(Vertices[crossroadIndex1][0]->X, Vertices[crossroadIndex2][0]->X)) && (thirdPoint->X <= Math::Max(Vertices[crossroadIndex1][2]->X, Vertices[crossroadIndex2][2]->X))) {
+						ignoredIntervals[countIgnored][0] = thirdPoint->X - 50;
+						ignoredIntervals[countIgnored][1] = thirdPoint->X + 50;
+
+						countIgnored++;
+					}
 				}
 
-				List<int>^ localRndX = gcnew List<int>(0);
-				label8->Text = "localRnd ";
-				for (int i = 0; i < ignoredIntervals->Count - 1; i++) {
-					localRndX->Add(rndGen->Next(ignoredIntervals[i] + 50, ignoredIntervals[i + 1]));
-					label8->Text += Convert::ToString(localRndX[i] + " ");
+				array<int>^ localRndY = gcnew array<int>(countIgnored - 1);
+				for (int i = 0; i < countIgnored - 1; i++) {
+					//	localRndY[i] = rndGen->Next(Math::Min(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]), Math::Max(ignoredIntervals[i][1], ignoredIntervals[i + 1][0]));
+					localRndY[i] = ignoredIntervals[i][1] + rndGen->Next(0, 50);
 				}
 
-				Passengers[Passengers->Count - 1]->xPos::set(localRndX[rndGen->Next(0, localRndX->Count)]);
-				Passengers[Passengers->Count - 1]->yPos::set(firstPoint->Y - (Math::Pow(-1, Math::Floor(verticeIndex1 / 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
-
-				
+				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, Math::Floor(verticeIndex1 / 2)) * PASSENGER_OFFSET));
+				Passengers[Passengers->Count - 1]->yPos::set(rndGen->Next((Math::Min(firstPoint->Y, secondPoint->Y) + 50), (Math::Max(firstPoint->Y, secondPoint->Y) - 50)));
 			}
 
 			label3->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex1, verticeIndex1));
@@ -587,14 +574,12 @@ public:
 
 			label6->Text = Convert::ToString(String::Format("{0} {1}", Vertices[crossroadIndex1][verticeIndex1]->X, Vertices[crossroadIndex1][verticeIndex1]->Y));
 			label7->Text = Convert::ToString(String::Format("{0} {1}", Vertices[crossroadIndex2][verticeIndex2]->X, Vertices[crossroadIndex2][verticeIndex2]->Y));
-
-			
 		}
 	}
 
-	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9) {
+	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7) {
 		for (int i = 0; i < TaxiCars->Count; i++) TaxiCars[i]->Move(Vertices);
-		PassengerSpawn(label3, label4, label5, label6, label7, label8, label9);
+		PassengerSpawn(label3, label4, label5, label6, label7);
 	}
 	
 };
