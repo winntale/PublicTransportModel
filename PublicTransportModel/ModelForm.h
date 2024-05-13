@@ -1,5 +1,5 @@
 #pragma once
-#include "ClassContainer.h"
+#include "envClass.h"
 
 namespace PublicTransportModel {
 
@@ -27,6 +27,7 @@ namespace PublicTransportModel {
 	private: System::Windows::Forms::Label^ label7;
 	private: System::Windows::Forms::Label^ label8;
 	private: System::Windows::Forms::Label^ label9;
+	private: System::Windows::Forms::Label^ label10;
 		   Bitmap^ background;
 
 	public:
@@ -96,6 +97,7 @@ namespace PublicTransportModel {
 			this->label7 = (gcnew System::Windows::Forms::Label());
 			this->label8 = (gcnew System::Windows::Forms::Label());
 			this->label9 = (gcnew System::Windows::Forms::Label());
+			this->label10 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -251,12 +253,22 @@ namespace PublicTransportModel {
 			this->label9->TabIndex = 18;
 			this->label9->Text = L"localRnd ";
 			// 
+			// label10
+			// 
+			this->label10->AutoSize = true;
+			this->label10->Location = System::Drawing::Point(1100, 718);
+			this->label10->Name = L"label10";
+			this->label10->Size = System::Drawing::Size(96, 31);
+			this->label10->TabIndex = 19;
+			this->label10->Text = L"label10";
+			// 
 			// ModelForm
 			// 
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::None;
 			this->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(70)), static_cast<System::Int32>(static_cast<System::Byte>(73)),
 				static_cast<System::Int32>(static_cast<System::Byte>(79)));
 			this->ClientSize = System::Drawing::Size(1584, 861);
+			this->Controls->Add(this->label10);
 			this->Controls->Add(this->label9);
 			this->Controls->Add(this->label8);
 			this->Controls->Add(this->label7);
@@ -364,7 +376,7 @@ namespace PublicTransportModel {
 	}
 	private: System::Void timeAction_Tick(System::Object^ sender, System::EventArgs^ e) {
 		ScreenUpdater();
-		env->TimerTickActions(label3, label4, label5, label6, label7, label8, label9);
+		env->TimerTickActions(label3, label4, label5, label6, label7, label8, label9, label10);
 	}
 private: System::Void timerStopSpamming_Tick(System::Object^ sender, System::EventArgs^ e) {
 	timerStopSpamming->Enabled = false;

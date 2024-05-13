@@ -29,13 +29,19 @@
     <ClInclude Include="ModelForm.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="ClassContainer.h">
+    <ClInclude Include="envClass.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Funcs.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Defines.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="passengerClass.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="taxiClass.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
   </ItemGroup>

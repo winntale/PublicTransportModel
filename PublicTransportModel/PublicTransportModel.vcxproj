@@ -125,12 +125,14 @@
     <ClCompile Include="TitleForm.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ClassContainer.h" />
+    <ClInclude Include="envClass.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="Funcs.h" />
     <ClInclude Include="ModelForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="passengerClass.h" />
+    <ClInclude Include="taxiClass.h" />
     <ClInclude Include="TitleForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
