@@ -1,5 +1,6 @@
 #pragma once
 
+
 using namespace System;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
@@ -242,7 +243,12 @@ public:
 	void WayFind(Passenger^ passenger) {
 		Point^ pasPoint = Point(passenger->xPos::get(), passenger->yPos::get());
 
+
 		//логика поиска пути
+	}
+
+	void MoveToPassenger() {
+		 // практически аналог move
 	}
 
 };

@@ -299,13 +299,27 @@ public:
 		}
 	}
 
-	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10) {
-		for (int i = 0; i < TaxiCars->Count; i++) {
-			if (TaxiCars[i]->state::get() == 0) {
-				TaxiCars[i]->Move(Vertices);
+	void TaxiChoise() {
+		Random^ rndGen = gcnew Random();
+		for (int i = 0; i < Passengers->Count; i++) {
+			int rndNumber = rndGen->Next(0, 101);
+			if (rndNumber >= 80 && Passengers[i]->state::get() == 0) {
+				TaxiCar^ serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)];
+				while (serviceCar->state::get() == 1 || serviceCar->state::get() == 2) { serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)]; }
+				serviceCar->state::set(1);
+				Passengers[i]->state::set(1);
+				serviceCar->WayFind(Passengers[i]);
 			}
 		}
+	}
+
+	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10) {
+		for (int i = 0; i < TaxiCars->Count; i++) {
+			if (TaxiCars[i]->state::get() == 0) { TaxiCars[i]->Move(Vertices); }
+			else if (TaxiCars[i]->state::get() == 1) { TaxiCars[i]->WayFind(); }
+		}
 		PassengerSpawn(label3, label4, label5, label6, label7, label8, label9, label10);
+		TaxiChoise();
 	}
 	
 };
