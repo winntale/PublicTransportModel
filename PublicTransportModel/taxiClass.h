@@ -4,6 +4,7 @@
 using namespace System;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
+using namespace System::Collections::Generic;
 
 #include "Defines.h"
 #include "passengerClass.h"
@@ -30,6 +31,8 @@ private:
 	Point^ _nextPoint2;
 	int _npCrossroadIndex2;
 	int _npVerticeIndex2;
+	List<int>^ _wayX;
+	List<int>^ _wayY;
 
 public:
 	TaxiCar() {
@@ -119,6 +122,14 @@ public:
 	property int npVerticeIndex2 {
 		int get() { return _npVerticeIndex2; }
 		void set(int _value) { _npVerticeIndex2 = _value; }
+	}
+
+	property List<int>^ wayX {
+		List<int>^ get() { return _wayX; }
+	}
+
+	property List<int>^ wayY {
+		List<int>^ get() { return _wayY; }
 	}
 
 	// метод описания движения и поворота в 0 состоянии машины (завершён)
@@ -240,9 +251,55 @@ public:
 	}
 
 	// метод поиска пути
-	void WayFind(Passenger^ passenger) {
+	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
 		Point^ pasPoint = Point(passenger->xPos::get(), passenger->yPos::get());
 
+		//Point^ nextVertice = _nextPoint2;
+		//_wayX->Add(nextVertice->X);
+		//_wayY->Add(nextVertice->Y);
+		Point^ wayEndPoint = Point(_wayX[_wayX->Count - 1], _wayY[_wayY->Count - 1]);
+
+		List<int>^ reachableX = {};
+		List<int>^ reachableY = {};
+		reachableX->Add(_nextPoint2->X);
+		reachableY->Add(_nextPoint2->Y);
+
+		List<int>^ exploredX = {};
+		List<int>^ exploredY = {};
+
+		bool a = false;
+		bool b = false;
+
+		while (reachableX->Count && reachableY->Count) {
+			Point^ vertice = Point(reachableX[0], reachableY[0]);
+			
+			for (int i = 0; i < VERTEX_QUANTITY; i++) {
+				for (int j = 0; j < 4; j++) {
+					Point^ tempVertice = Vertices[i][j];
+					a = vertice->X == tempVertice->X;
+					b = vertice->Y == tempVertice->Y;
+
+					if ((a + b) % 2) {
+						reachableX->Add(tempVertice->X);
+						reachableY->Add(tempVertice->Y);
+					}
+				}
+			}
+
+			exploredX->Add(vertice->X);
+			exploredY->Add(vertice->Y);
+
+			reachableX->Remove(vertice->X);
+			reachableY->Remove(vertice->Y);
+		}
+
+		while (wayEndPoint != passenger->endPoint::get()) {
+
+			// добавить внутрь вайла проверку на самую маленькую разность совпадающих координат перекрёстков путём генерации массива ВСЕХ перекрёстков одной координаты
+
+			// цикл определяет, есть ли путь до 2-го перекрёстка
+
+		}
 
 		//логика поиска пути
 	}

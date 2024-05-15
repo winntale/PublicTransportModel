@@ -11,6 +11,7 @@ private:
 	int _yPos;
 
 	int _state; // 0 - выбор машины; 1 - ожидание машины; 2 - в пункте прибытия
+	Point^ _endPoint;
 public:
 	Passenger() {
 		_xPos = 0;
@@ -32,5 +33,10 @@ public:
 	property int state {
 		int get() { return _state; }
 		void set(int _value) { _state = _value; }
+	}
+
+	property Point^ endPoint {
+		Point^ get() { return _endPoint; }
+		void set(Point^ _value) { _endPoint = _value; }
 	}
 };
