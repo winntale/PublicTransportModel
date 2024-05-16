@@ -267,12 +267,53 @@ public:
 		List<int>^ exploredX = {};
 		List<int>^ exploredY = {};
 
+		List<int>^ reachableCrossroads = {};
+		reachableCrossroads->Add(_npCrossroadIndex2);
+
+		array<Point^>^ reachable = gcnew array<Point^>(0);
+		int reachableCount = 1;
+
 		bool a = false;
 		bool b = false;
 
-		while (reachableX->Count && reachableY->Count) {
-			Point^ vertice = Point(reachableX[0], reachableY[0]);
+		// нужен метод (событие) подбирания пассажира (совпала одна из координат (вторая координата варьируется по области в зависимости от направления движения)
+		// + едет по той же линии независимо от метода поиска пути)
+		
+		if (_npCrossroadIndex2 < passenger->endCrossroadIndex::get()) {
+			while (reachableCrossroads[0]) {
+				Point^ vertice = Vertices[reachableCrossroads[0]][_npVerticeIndex2];
+				for (int i = VERTEX_QUANTITY - 1; i >= 0; i--) {
+					for (int j = 3; j >= 0; j--) {
+						Point^ tempVertice = Vertices[i][j];
+						a = vertice->X == tempVertice->X;
+						b = vertice->Y == tempVertice->Y;
+
+						if ((a + b) % 2) {
+							for each (int crossroad in reachableCrossroads) {
+								if (((Vertices[i][0]->X == Vertices[crossroad][0]->X) && (Vertices[i][0]->Y < Vertices[crossroad][0]->Y))
+									|| ((Vertices[i][0]->Y == Vertices[crossroad][0]->Y) && (Vertices[i][0]->X < Vertices[crossroad][0]->X)))
+								{ reachableCrossroads[reachableCrossroads->IndexOf(crossroad)] = i; }
+							}
+							reachableCrossroads->Add(i);
+							break;
+						}
+					}
+				}
+
+				for (int i = 0; i < reachableCount - 1; i++) {
+					for (int j = i + 1; j < reachableCount; j++) {
+						if (((reachable[j]->X < reachable[i]->X) && (reachable[j]->Y == reachable[i]->Y))
+							|| ((reachable[j]->Y < reachable[i]->Y) && (reachable[j]->X == reachable[i]->X)))
+					}
+				}
+
+
+			}
+		}
+
+		
 			
+			Point^ vertice = Point(reachableX[0], reachableY[0]);
 			for (int i = 0; i < VERTEX_QUANTITY; i++) {
 				for (int j = 0; j < 4; j++) {
 					Point^ tempVertice = Vertices[i][j];

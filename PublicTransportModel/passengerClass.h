@@ -12,6 +12,12 @@ private:
 
 	int _state; // 0 - выбор машины; 1 - ожидание машины; 2 - в пункте прибытия
 	Point^ _endPoint;
+	int _endCrossroadIndex;
+	int _endVerticeIndex;
+
+	int _startCrossroadIndex;
+	int _startVerticeIndex;
+
 public:
 	Passenger() {
 		_xPos = 0;
@@ -39,4 +45,25 @@ public:
 		Point^ get() { return _endPoint; }
 		void set(Point^ _value) { _endPoint = _value; }
 	}
+
+	property int endCrossroadIndex {
+		int get() { return _endCrossroadIndex; }
+		void set(int _value) { _endCrossroadIndex = _value; }
+	}
+
+	property int endVerticeIndex {
+		int get() { return _endVerticeIndex; }
+		void set(int _value) { _endVerticeIndex = _value; }
+	}
+
+	property int startCrossroadIndex {
+		int get() { return _startCrossroadIndex; }
+		void set(int _value) { _startCrossroadIndex = _value; }
+	}
+
+	property int startVerticeIndex {
+		int get() { return _startVerticeIndex; }
+		void set(int _value) { _startVerticeIndex = _value; }
+	}
+
 };

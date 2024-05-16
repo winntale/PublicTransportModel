@@ -285,6 +285,11 @@ public:
 			}
 
 			Passengers[Passengers->Count - 1]->endPoint::set(Vertices[crossroadIndex2][verticeIndex2]);
+			Passengers[Passengers->Count - 1]->endCrossroadIndex::set(crossroadIndex2);
+			Passengers[Passengers->Count - 1]->endVerticeIndex::set(verticeIndex2);
+
+			Passengers[Passengers->Count - 1]->startCrossroadIndex::set(crossroadIndex1);
+			Passengers[Passengers->Count - 1]->startVerticeIndex::set(verticeIndex1);
 
 			label3->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex1, verticeIndex1));
 			label4->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex2, verticeIndex2));
@@ -319,6 +324,7 @@ public:
 		}
 		PassengerSpawn(label3, label4, label5, label6, label7, label8, label9, label10);
 		TaxiChoise();
+		//IfTaxiIsGone();
 	}
 	
 };
