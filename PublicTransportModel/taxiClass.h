@@ -31,8 +31,7 @@ private:
 	Point^ _nextPoint2;
 	int _npCrossroadIndex2;
 	int _npVerticeIndex2;
-	List<int>^ _wayX;
-	List<int>^ _wayY;
+	array<Point^>^ _way;
 
 public:
 	TaxiCar() {
@@ -124,12 +123,8 @@ public:
 		void set(int _value) { _npVerticeIndex2 = _value; }
 	}
 
-	property List<int>^ wayX {
-		List<int>^ get() { return _wayX; }
-	}
-
-	property List<int>^ wayY {
-		List<int>^ get() { return _wayY; }
+	property array<Point^>^ way {
+		array<Point^>^ get() { return _way; }
 	}
 
 	// метод описания движения и поворота в 0 состоянии машины (завершён)
@@ -254,95 +249,68 @@ public:
 	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
 		Point^ pasPoint = Point(passenger->xPos::get(), passenger->yPos::get());
 
-		//Point^ nextVertice = _nextPoint2;
-		//_wayX->Add(nextVertice->X);
-		//_wayY->Add(nextVertice->Y);
-		Point^ wayEndPoint = Point(_wayX[_wayX->Count - 1], _wayY[_wayY->Count - 1]);
+		int wayLength = 0;
 
-		List<int>^ reachableX = {};
-		List<int>^ reachableY = {};
-		reachableX->Add(_nextPoint2->X);
-		reachableY->Add(_nextPoint2->Y);
-
-		List<int>^ exploredX = {};
-		List<int>^ exploredY = {};
-
-		List<int>^ reachableCrossroads = {};
-		reachableCrossroads->Add(_npCrossroadIndex2);
-
-		array<Point^>^ reachable = gcnew array<Point^>(0);
-		int reachableCount = 1;
-
+		// вносим в массив досягаемых точек начальный перекрёсток пути, соответствующий 3ей точке при генерации, умноженный на 10 (вытащить можно с помощью деления нацело на 10),
+		// а также вершину 3ей точки (вытащить можно с помощью деления по модулю 10 (% 10)).
+		// то есть точка представляет из себя число (1-3значное), например 0ой перекрёсток 3ья вершина - 3, 1ый перекрёсток 2ая вершина - 12, 12ый перекрёсток 1ая вершина - 121.
+		List<int>^ reachable = {};
+		reachable->Add((_npCrossroadIndex2 * 10) + _npVerticeIndex2);
+		
 		bool a = false;
 		bool b = false;
 
 		// нужен метод (событие) подбирания пассажира (совпала одна из координат (вторая координата варьируется по области в зависимости от направления движения)
 		// + едет по той же линии независимо от метода поиска пути)
 		
+		// если индекс начального перекрёстка меньше, чем индекс конечного
 		if (_npCrossroadIndex2 < passenger->endCrossroadIndex::get()) {
-			while (reachableCrossroads[0]) {
-				Point^ vertice = Vertices[reachableCrossroads[0]][_npVerticeIndex2];
+			while (reachable->Count) {
+				// переназначение текущей точки
+				Point^ vertice = Vertices[reachable[0] / 10][reachable[0] % 10];
+
+				// ГЕНЕРАЦИЯ МАССИВА ДОСТИГАЕМЫХ ТОЧЕК ОТ ТЕКУЩЕЙ (vertice)
+				// в цикле идём по всем перекрёсткам и их вершинам от большего индекса к меньшему
 				for (int i = VERTEX_QUANTITY - 1; i >= 0; i--) {
 					for (int j = 3; j >= 0; j--) {
-						Point^ tempVertice = Vertices[i][j];
-						a = vertice->X == tempVertice->X;
-						b = vertice->Y == tempVertice->Y;
+						Point^ nextVertice = Vertices[i][j];
+						// условия совпадения одной из координат
+						a = vertice->X == nextVertice->X;
+						b = vertice->Y == nextVertice->Y;
 
-						if ((a + b) % 2) {
-							for each (int crossroad in reachableCrossroads) {
-								if (((Vertices[i][0]->X == Vertices[crossroad][0]->X) && (Vertices[i][0]->Y < Vertices[crossroad][0]->Y))
-									|| ((Vertices[i][0]->Y == Vertices[crossroad][0]->Y) && (Vertices[i][0]->X < Vertices[crossroad][0]->X)))
-								{ reachableCrossroads[reachableCrossroads->IndexOf(crossroad)] = i; }
+						// если совпала только одна координата
+						if (((a + b) % 2) && (reachable[0] != (i * 10) + j)) {
+							// проверяем для каждого перекрёстка в массиве достигаемых перекрёстков
+							for each (int crossroad in reachable) {
+								Point^ availableVertice = Vertices[crossroad / 10][crossroad % 10];
+								// если найденная точка расположена на одной линии с одной из уже существующих точек в достигаемых и имеет меньшее расстояние с текущей точкой
+								if (((nextVertice->X == availableVertice->X) && (Math::Abs(nextVertice->Y - vertice->Y) < Math::Abs(availableVertice->Y - vertice->Y) - 20))
+									|| ((nextVertice->Y == availableVertice->Y) && (Math::Abs(nextVertice->X - vertice->X) < Math::Abs(availableVertice->X - vertice->X) - 20)))
+								{ reachable[reachable->IndexOf(crossroad)] = (i * 10) + j; } // меняем точку на найденную
 							}
-							reachableCrossroads->Add(i);
+							// если цикл по массиву, описанный выше, не заменил уже существующую точку на только что найденную - добавляем как новую
+							// выходя из вложенного цикла (по j)
+							if (!reachable->Contains((i * 10) + j)) { reachable->Add((i * 10) + j); }
 							break;
 						}
 					}
 				}
+				// после вышеописанных действий мы получили всех ближайших соседей-точек точки vertice (той, в которой мы находимся сейчас)
 
-				for (int i = 0; i < reachableCount - 1; i++) {
-					for (int j = i + 1; j < reachableCount; j++) {
-						if (((reachable[j]->X < reachable[i]->X) && (reachable[j]->Y == reachable[i]->Y))
-							|| ((reachable[j]->Y < reachable[i]->Y) && (reachable[j]->X == reachable[i]->X)))
+				for (int i = 1; i < reachable->Count; i++) {
+					if (_way[wayLength] != Vertices[passenger->startCrossroadIndex][passenger->startVerticeIndex]) {
+						_way[wayLength] = vertice;
+						wayLength++;
+						reachable->RemoveAt(0);
 					}
-				}
-
-
-			}
-		}
-
-		
-			
-			Point^ vertice = Point(reachableX[0], reachableY[0]);
-			for (int i = 0; i < VERTEX_QUANTITY; i++) {
-				for (int j = 0; j < 4; j++) {
-					Point^ tempVertice = Vertices[i][j];
-					a = vertice->X == tempVertice->X;
-					b = vertice->Y == tempVertice->Y;
-
-					if ((a + b) % 2) {
-						reachableX->Add(tempVertice->X);
-						reachableY->Add(tempVertice->Y);
+					else {
+						_way[wayLength] = Vertices[passenger->endCrossroadIndex][passenger->endVerticeIndex];
+						wayLength++;
+						reachable->RemoveRange(0, reachable->Count);
 					}
 				}
 			}
-
-			exploredX->Add(vertice->X);
-			exploredY->Add(vertice->Y);
-
-			reachableX->Remove(vertice->X);
-			reachableY->Remove(vertice->Y);
 		}
-
-		while (wayEndPoint != passenger->endPoint::get()) {
-
-			// добавить внутрь вайла проверку на самую маленькую разность совпадающих координат перекрёстков путём генерации массива ВСЕХ перекрёстков одной координаты
-
-			// цикл определяет, есть ли путь до 2-го перекрёстка
-
-		}
-
-		//логика поиска пути
 	}
 
 	void MoveToPassenger() {
