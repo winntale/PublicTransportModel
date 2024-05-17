@@ -28,6 +28,7 @@ namespace PublicTransportModel {
 	private: System::Windows::Forms::Label^ label8;
 	private: System::Windows::Forms::Label^ label9;
 	private: System::Windows::Forms::Label^ label10;
+	private: System::Windows::Forms::Label^ label11;
 		   Bitmap^ background;
 
 	public:
@@ -98,6 +99,7 @@ namespace PublicTransportModel {
 			this->label8 = (gcnew System::Windows::Forms::Label());
 			this->label9 = (gcnew System::Windows::Forms::Label());
 			this->label10 = (gcnew System::Windows::Forms::Label());
+			this->label11 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -256,11 +258,21 @@ namespace PublicTransportModel {
 			// label10
 			// 
 			this->label10->AutoSize = true;
-			this->label10->Location = System::Drawing::Point(1100, 718);
+			this->label10->Location = System::Drawing::Point(1030, 695);
 			this->label10->Name = L"label10";
 			this->label10->Size = System::Drawing::Size(96, 31);
 			this->label10->TabIndex = 19;
 			this->label10->Text = L"label10";
+			// 
+			// label11
+			// 
+			this->label11->AutoSize = true;
+			this->label11->Font = (gcnew System::Drawing::Font(L"Microsoft YaHei", 13));
+			this->label11->Location = System::Drawing::Point(1030, 738);
+			this->label11->Name = L"label11";
+			this->label11->Size = System::Drawing::Size(44, 24);
+			this->label11->TabIndex = 20;
+			this->label11->Text = L"way";
 			// 
 			// ModelForm
 			// 
@@ -268,6 +280,7 @@ namespace PublicTransportModel {
 			this->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(70)), static_cast<System::Int32>(static_cast<System::Byte>(73)),
 				static_cast<System::Int32>(static_cast<System::Byte>(79)));
 			this->ClientSize = System::Drawing::Size(1584, 861);
+			this->Controls->Add(this->label11);
 			this->Controls->Add(this->label10);
 			this->Controls->Add(this->label9);
 			this->Controls->Add(this->label8);
@@ -376,7 +389,7 @@ namespace PublicTransportModel {
 	}
 	private: System::Void timeAction_Tick(System::Object^ sender, System::EventArgs^ e) {
 		ScreenUpdater();
-		env->TimerTickActions(label3, label4, label5, label6, label7, label8, label9, label10);
+		env->TimerTickActions(label3, label4, label5, label6, label7, label8, label9, label10, label11);
 	}
 private: System::Void timerStopSpamming_Tick(System::Object^ sender, System::EventArgs^ e) {
 	timerStopSpamming->Enabled = false;

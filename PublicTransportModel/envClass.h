@@ -181,7 +181,7 @@ public:
 		Random^ rndGen = gcnew Random();
 		int randomNumber = rndGen->Next(0, 1001);
 
-		if (TaxiCars->Count && (Passengers->Count < TaxiCars->Count) && (randomNumber > 994)) {
+		if (TaxiCars->Count && (Passengers->Count < TaxiCars->Count) && (randomNumber > 980)) { // 994
 			Passengers->Add(gcnew Passenger());
 
 			int crossroadIndex1 = rndGen->Next(0, VERTEX_QUANTITY);
@@ -303,7 +303,7 @@ public:
 		}
 	}
 
-	void TaxiChoise() {
+	void TaxiChoise(Label^ label) {
 		Random^ rndGen = gcnew Random();
 		for (int i = 0; i < Passengers->Count; i++) {
 			int rndNumber = rndGen->Next(0, 101);
@@ -312,18 +312,18 @@ public:
 				while (serviceCar->state::get() == 1 || serviceCar->state::get() == 2) { serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)]; }
 				serviceCar->state::set(1);
 				Passengers[i]->state::set(1);
-				serviceCar->WayFind(Passengers[i], Vertices);
+				serviceCar->WayFind(Passengers[i], Vertices, label);
 			}
 		}
 	}
 
-	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10) {
+	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10, Label^ label11) {
 		for (int i = 0; i < TaxiCars->Count; i++) {
 			if (TaxiCars[i]->state::get() == 0) { TaxiCars[i]->Move(Vertices); }
 			else if (TaxiCars[i]->state::get() == 1) { TaxiCars[i]->MoveToPassenger(); }
 		}
 		PassengerSpawn(label3, label4, label5, label6, label7, label8, label9, label10);
-		TaxiChoise();
+		TaxiChoise(label11);
 		//IfTaxiIsGone();
 	}
 	

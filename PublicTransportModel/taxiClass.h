@@ -41,6 +41,8 @@ public:
 		_fuelWaste = 1;
 		_currentFuel = 100;
 		_state = 0;
+
+		_way = gcnew array<Point^>(VERTEX_QUANTITY);
 	}
 	~TaxiCar() {};
 
@@ -246,17 +248,18 @@ public:
 	}
 
 	// метод поиска пути
-	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
+	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices, Label^ label) {
 		Point^ pasPoint = Point(passenger->xPos::get(), passenger->yPos::get());
 
-		int wayLength = 0;
+		int wayLength = 1;
 
-		// вносим в массив досягаемых точек начальный перекрёсток пути, соответствующий 3ей точке при генерации, умноженный на 10 (вытащить можно с помощью деления нацело на 10),
+		// вносим в массив достигаемых точек начальный перекрёсток пути, соответствующий 3ей точке при генерации, умноженный на 10 (вытащить можно с помощью деления нацело на 10),
 		// а также вершину 3ей точки (вытащить можно с помощью деления по модулю 10 (% 10)).
 		// то есть точка представляет из себя число (1-3значное), например 0ой перекрёсток 3ья вершина - 3, 1ый перекрёсток 2ая вершина - 12, 12ый перекрёсток 1ая вершина - 121.
-		List<int>^ reachable = {};
+		List<int>^ reachable = gcnew List<int>(0);
 		reachable->Add((_npCrossroadIndex2 * 10) + _npVerticeIndex2);
-		
+		way[0] = _nextPoint2;
+
 		bool a = false;
 		bool b = false;
 
@@ -281,33 +284,36 @@ public:
 						// если совпала только одна координата
 						if (((a + b) % 2) && (reachable[0] != (i * 10) + j)) {
 							// проверяем для каждого перекрёстка в массиве достигаемых перекрёстков
-							for each (int crossroad in reachable) {
+							List<int>^ reachableCopy = reachable;
+							for each (int crossroad in reachable->ToArray()) {
 								Point^ availableVertice = Vertices[crossroad / 10][crossroad % 10];
 								// если найденная точка расположена на одной линии с одной из уже существующих точек в достигаемых и имеет меньшее расстояние с текущей точкой
 								if (((nextVertice->X == availableVertice->X) && (Math::Abs(nextVertice->Y - vertice->Y) < Math::Abs(availableVertice->Y - vertice->Y) - 20))
 									|| ((nextVertice->Y == availableVertice->Y) && (Math::Abs(nextVertice->X - vertice->X) < Math::Abs(availableVertice->X - vertice->X) - 20)))
-								{ reachable[reachable->IndexOf(crossroad)] = (i * 10) + j; } // меняем точку на найденную
+								{ reachableCopy[reachableCopy->IndexOf(crossroad)] = (i * 10) + j; } // меняем точку на найденную
 							}
+							reachable = reachableCopy;
+
 							// если цикл по массиву, описанный выше, не заменил уже существующую точку на только что найденную - добавляем как новую
 							// выходя из вложенного цикла (по j)
-							if (!reachable->Contains((i * 10) + j)) { reachable->Add((i * 10) + j); }
+							if (!(reachable->Contains((i * 10) + j))) { reachable->Add((i * 10) + j); }
 							break;
 						}
 					}
 				}
+				reachable->RemoveAt(0);
 				// после вышеописанных действий мы получили всех ближайших соседей-точек точки vertice (той, в которой мы находимся сейчас)
 
-				for (int i = 1; i < reachable->Count; i++) {
-					if (_way[wayLength] != Vertices[passenger->startCrossroadIndex][passenger->startVerticeIndex]) {
-						_way[wayLength] = vertice;
-						wayLength++;
-						reachable->RemoveAt(0);
-					}
-					else {
-						_way[wayLength] = Vertices[passenger->endCrossroadIndex][passenger->endVerticeIndex];
-						wayLength++;
-						reachable->RemoveRange(0, reachable->Count);
-					}
+				if (_way[wayLength] != Vertices[passenger->startCrossroadIndex::get()][passenger->startVerticeIndex::get()]) {
+					_way[wayLength] = Vertices[reachable[0] / 10][reachable[0] % 10];
+					label->Text += Convert::ToString(String::Format(" {0}{1}", reachable[0] / 10, reachable[0] % 10));
+					wayLength++;
+				}
+				else {
+					_way[wayLength] = Vertices[passenger->endCrossroadIndex][passenger->endVerticeIndex];
+					label->Text += Convert::ToString(_way[wayLength]);
+					wayLength++;
+					reachable->RemoveRange(0, reachable->Count);
 				}
 			}
 		}
