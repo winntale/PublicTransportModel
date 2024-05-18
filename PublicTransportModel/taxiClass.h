@@ -281,8 +281,12 @@ public:
 						a = vertice->X == nextVertice->X;
 						b = vertice->Y == nextVertice->Y;
 
-						// если совпала только одна координата
-						if (((a + b) % 2) && (reachable[0] != (i * 10) + j)) {
+						
+						List<int>^ reachableCrossroads = gcnew List<int>(reachable->Count);
+						for each (int crossroad in reachable) { reachableCrossroads->Add(crossroad / 10); }
+
+						// если совпала только одна координата И в массиве достигаемых точек не содержится перекрёсток
+						if (((a + b) % 2) && (reachableCrossroads->IndexOf(i) == -1)) {
 							// проверяем для каждого перекрёстка в массиве достигаемых перекрёстков
 							List<int>^ reachableCopy = reachable;
 							for each (int crossroad in reachable->ToArray()) {
@@ -296,12 +300,11 @@ public:
 
 							// если цикл по массиву, описанный выше, не заменил уже существующую точку на только что найденную - добавляем как новую
 							// выходя из вложенного цикла (по j)
-							if (!(reachable->Contains((i * 10) + j))) { reachable->Add((i * 10) + j); }
-							break;
+							if (reachable->IndexOf((i * 10) + j) == -1) { reachable->Add((i * 10) + j); break; }
 						}
 					}
 				}
-				reachable->RemoveAt(0);
+				reachable->Remove(reachable[0]);
 				// после вышеописанных действий мы получили всех ближайших соседей-точек точки vertice (той, в которой мы находимся сейчас)
 
 				if (_way[wayLength] != Vertices[passenger->startCrossroadIndex::get()][passenger->startVerticeIndex::get()]) {
