@@ -190,6 +190,21 @@ public:
 			int verticeIndex1 = rndGen->Next(0, 4);
 			int verticeIndex2 = rndGen->Next(0, 4);
 
+			int iCur = 0;
+			int iLimit = 0;
+			if (verticeIndex1 == 1) { iCur = crossroadIndex1 - 1; iLimit = -1; } // перекрёстки индексом меньше, чем текущий
+			else if (verticeIndex1 == 2) { iCur = (VERTEX_QUANTITY - 1); iLimit = crossroadIndex1; } //..больше, чем текущий
+			else {
+				if (a && !b) {
+					if (verticeIndex1 == 0) { iCur = (VERTEX_QUANTITY - 1); iLimit = crossroadIndex1; }
+					else if (verticeIndex1 == 3) { iCur = crossroadIndex1 - 1; iLimit = -1; }
+					{}
+				}
+				else if (b && !a) {
+					if (verticeIndex1 == 0) { iCur = crossroadIndex1 - 1; iLimit = -1; }
+					else if (verticeIndex1 == 3) { iCur = (VERTEX_QUANTITY - 1); iLimit = crossroadIndex1; }
+				}
+			}
 
 			bool a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][verticeIndex2]->X); // совпал X у 2-х точек (1-ая и 2-ая)
 			bool b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][verticeIndex2]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)

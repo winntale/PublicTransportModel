@@ -270,37 +270,68 @@ public:
 		if (_npCrossroadIndex2 < passenger->endCrossroadIndex::get()) {
 			while (reachable->Count) {
 				// переназначение текущей точки
-				Point^ vertice = Vertices[reachable[0] / 10][reachable[0] % 10];
+				Point^ currentPoint = Vertices[reachable[0] / 10][reachable[0] % 10];
+				int currentCrossroad = reachable[0] / 10;
+				int currentVertice = reachable[0] % 10;
+
+				// verticeIndex = reachable[0] % 10; crossroadIndex = reachable[0] / 10
+				// verticeIndex = 0 тогда a: i > crossroadIndex, b: i < crossroadIndex
+				// verticeIndex = 1 тогда a или b: i < crossroadIndex
+				// verticeIndex = 2 тогда a или b: i > crossroadIndex
+				// verticeIndex = 3 тогда a: i < crossroadIndex, b: i > crosroadIndex
+
+				
+
+				for (int i = Math::Max((VERTEX_QUANTITY - 1) * Math::Pow(-1, (reachable[0] % 10) % 2), ((reachable[0] / 10) - 1) * Math::Pow(-1, ((reachable[0] % 10) % 2) + 1)); i > -Math::Min((reachable[0] / 10) * Math::Pow(-1, ((reachable[0] % 10) % 2) + 1), 1 * Math::Pow(-1, (reachable[0] % 10) % 2)); i--) {
+					// генерация следующего индекса массива
+				}
+
+				int iCur = 0;
+				int iLimit = 0;
+				if (currentVertice == 1) { iCur = currentCrossroad - 1; iLimit = -1; } // перекрёстки индексом меньше, чем текущий
+				else if (currentVertice == 2) { iCur = (VERTEX_QUANTITY - 1); iLimit = currentCrossroad; } //..больше, чем текущий
+				else {
+					if (a && !b) {
+						if (currentVertice == 0) { iCur = (VERTEX_QUANTITY - 1); iLimit = currentCrossroad; }
+						else if (currentVertice == 3) { iCur = currentCrossroad - 1; iLimit = -1; }
+					}
+					else if (b && !a) {
+						if (currentVertice == 0) { iCur = currentCrossroad - 1; iLimit = -1; }
+						else if (currentVertice == 3) { iCur = (VERTEX_QUANTITY - 1); iLimit = currentCrossroad; }
+					}
+				}
 
 				// ГЕНЕРАЦИЯ МАССИВА ДОСТИГАЕМЫХ ТОЧЕК ОТ ТЕКУЩЕЙ (vertice)
 				// в цикле идём по всем перекрёсткам и их вершинам от большего индекса к меньшему
-				for (int i = VERTEX_QUANTITY - 1; i >= 0; i--) {
+				for (iCur; iCur > iLimit; iCur--) {
 					for (int j = 3; j >= 0; j--) {
-						Point^ nextVertice = Vertices[i][j];
+						Point^ nextPoint = Vertices[iCur][j];
 						// условия совпадения одной из координат
-						a = vertice->X == nextVertice->X;
-						b = vertice->Y == nextVertice->Y;
+						a = currentPoint->X == nextPoint->X;
+						b = currentPoint->Y == nextPoint->Y;
 
-						
+						//if ((a && !b) && way
+
+
 						List<int>^ reachableCrossroads = gcnew List<int>(reachable->Count);
 						for each (int crossroad in reachable) { reachableCrossroads->Add(crossroad / 10); }
 
 						// если совпала только одна координата И в массиве достигаемых точек не содержится перекрёсток
-						if (((a + b) % 2) && (reachableCrossroads->IndexOf(i) == -1)) {
+						if (((a + b) % 2) && (reachableCrossroads->IndexOf(iCur) == -1)) {
 							// проверяем для каждого перекрёстка в массиве достигаемых перекрёстков
 							List<int>^ reachableCopy = reachable;
 							for each (int crossroad in reachable->ToArray()) {
-								Point^ availableVertice = Vertices[crossroad / 10][crossroad % 10];
+								Point^ availablePoint = Vertices[crossroad / 10][crossroad % 10];
 								// если найденная точка расположена на одной линии с одной из уже существующих точек в достигаемых и имеет меньшее расстояние с текущей точкой
-								if (((nextVertice->X == availableVertice->X) && (Math::Abs(nextVertice->Y - vertice->Y) < Math::Abs(availableVertice->Y - vertice->Y) - 20))
-									|| ((nextVertice->Y == availableVertice->Y) && (Math::Abs(nextVertice->X - vertice->X) < Math::Abs(availableVertice->X - vertice->X) - 20)))
-								{ reachableCopy[reachableCopy->IndexOf(crossroad)] = (i * 10) + j; } // меняем точку на найденную
+								if (((nextPoint->X == availablePoint->X) && (Math::Abs(nextPoint->Y - currentPoint->Y) < Math::Abs(availablePoint->Y - currentPoint->Y) - 20))
+									|| ((nextPoint->Y == availablePoint->Y) && (Math::Abs(nextPoint->X - currentPoint->X) < Math::Abs(availablePoint->X - currentPoint->X) - 20)))
+								{ reachableCopy[reachableCopy->IndexOf(crossroad)] = (iCur * 10) + j; } // меняем точку на найденную
 							}
 							reachable = reachableCopy;
 
 							// если цикл по массиву, описанный выше, не заменил уже существующую точку на только что найденную - добавляем как новую
 							// выходя из вложенного цикла (по j)
-							if (reachable->IndexOf((i * 10) + j) == -1) { reachable->Add((i * 10) + j); break; }
+							if (reachable->IndexOf((iCur * 10) + j) == -1) { reachable->Add((iCur * 10) + j); break; }
 						}
 					}
 				}
