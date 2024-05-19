@@ -181,33 +181,63 @@ public:
 		Random^ rndGen = gcnew Random();
 		int randomNumber = rndGen->Next(0, 1001);
 
-		if (TaxiCars->Count && (Passengers->Count < TaxiCars->Count) && (randomNumber > 980)) { // 994
+		if (TaxiCars->Count && (Passengers->Count < TaxiCars->Count) && (randomNumber > 100)) { // 994
 			Passengers->Add(gcnew Passenger());
 
 			int crossroadIndex1 = rndGen->Next(0, VERTEX_QUANTITY);
-			int crossroadIndex2 = rndGen->Next(0, VERTEX_QUANTITY);
+			int crossroadIndex2 = 0;
 
-			int verticeIndex1 = rndGen->Next(0, 4);
-			int verticeIndex2 = rndGen->Next(0, 4);
+			List<int>^ verticeCompatibleFirstHalf = gcnew List<int>(0); // 20, 32
+			verticeCompatibleFirstHalf->Add(20); verticeCompatibleFirstHalf->Add(32);
 
-			int iCur = 0;
-			int iLimit = 0;
-			if (verticeIndex1 == 1) { iCur = crossroadIndex1 - 1; iLimit = -1; } // перекрЄстки индексом меньше, чем текущий
-			else if (verticeIndex1 == 2) { iCur = (VERTEX_QUANTITY - 1); iLimit = crossroadIndex1; } //..больше, чем текущий
-			else {
-				if (a && !b) {
-					if (verticeIndex1 == 0) { iCur = (VERTEX_QUANTITY - 1); iLimit = crossroadIndex1; }
-					else if (verticeIndex1 == 3) { iCur = crossroadIndex1 - 1; iLimit = -1; }
-					{}
-				}
-				else if (b && !a) {
-					if (verticeIndex1 == 0) { iCur = crossroadIndex1 - 1; iLimit = -1; }
-					else if (verticeIndex1 == 3) { iCur = (VERTEX_QUANTITY - 1); iLimit = crossroadIndex1; }
-				}
-			}
+			List<int>^ verticeCompatibleSecondHalf = gcnew List<int>(0); // 01, 13
+			verticeCompatibleSecondHalf->Add(1); verticeCompatibleSecondHalf->Add(13);
+
+			int verticeIndex1 = 0;
+			int verticeIndex2 = 0;
 
 			bool a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][verticeIndex2]->X); // совпал X у 2-х точек (1-а€ и 2-а€)
 			bool b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][verticeIndex2]->Y); // совпал Y у 2-х точек (1-а€ и 2-а€)
+
+			if (crossroadIndex1 < Convert::ToInt16(VERTEX_QUANTITY / 2)) {
+				verticeIndex1 = verticeCompatibleFirstHalf[rndGen->Next(0, 2)] / 10;
+
+				for (int i = crossroadIndex1 + 1; i < VERTEX_QUANTITY - 1; i++) {
+					crossroadIndex2 = i; // 5
+					for (int j = 0; j < 4; j++) {
+						a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][j]->X); // совпал X у 2-х точек (1-а€ и 2-а€)
+						b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][j]->Y); // совпал Y у 2-х точек (1-а€ и 2-а€)
+
+						if (((a + b) % 2) && (verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + j))) { verticeIndex2 = j; break; }
+					}
+				}
+			}
+			else if (crossroadIndex1 >= Convert::ToInt16(VERTEX_QUANTITY / 2)) {
+				verticeIndex1 = verticeCompatibleSecondHalf[rndGen->Next(0, 2)] / 10;
+
+				for (int i = crossroadIndex1 - 1; i >= 0; i--) {
+					crossroadIndex2 = i;
+					for (int j = 0; j < 4; j++) {
+						a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][j]->X); // совпал X у 2-х точек (1-а€ и 2-а€)
+						b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][j]->Y); // совпал Y у 2-х точек (1-а€ и 2-а€)
+
+						if (((a + b) % 2) && (verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + j))) { verticeIndex2 = j; break; }
+					}
+				}
+			}
+
+			Point^ firstPoint = Vertices[crossroadIndex1][verticeIndex1];
+			Point^ secondPoint = Vertices[crossroadIndex2][verticeIndex2];
+
+
+			if (a && !b) {
+				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, (verticeIndex1 % 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
+				Passengers[Passengers->Count - 1]->yPos::set(rndGen->Next(Math::Min(firstPoint->Y, secondPoint->Y), Math::Max(firstPoint->Y, secondPoint->Y)));
+			}
+			if (b && !a) {
+				Passengers[Passengers->Count - 1]->xPos::set(rndGen->Next(Math::Min(firstPoint->X, secondPoint->X), Math::Max(firstPoint->X, secondPoint->X)));
+				Passengers[Passengers->Count - 1]->yPos::set(firstPoint->Y - (Math::Pow(-1, verticeIndex1 / 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2)));
+			}
 
 			// !((a + b) % 2) - цикл мен€ет координаты точки до тех пор, пока не произойдЄт “ќЋ№ ќ одно из 2х событий (либо a, либо b)
 			// || (crossroadIndex1 == crossroadIndex2) - условие нужно дл€ того, чтобы избежать ситуации вз€ти€ двух точек одного перекрЄстка
@@ -327,7 +357,7 @@ public:
 				while (serviceCar->state::get() == 1 || serviceCar->state::get() == 2) { serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)]; }
 				serviceCar->state::set(1);
 				Passengers[i]->state::set(1);
-				serviceCar->WayFind(Passengers[i], Vertices, label);
+				//serviceCar->WayFind(Passengers[i], Vertices, label);
 			}
 		}
 	}
