@@ -200,29 +200,38 @@ public:
 			bool b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][verticeIndex2]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
 
 			if (crossroadIndex1 < Convert::ToInt16(VERTEX_QUANTITY / 2)) {
-				verticeIndex1 = verticeCompatibleFirstHalf[rndGen->Next(0, 2)] / 10;
 
-				for (int i = crossroadIndex1 + 1; i < VERTEX_QUANTITY - 1; i++) {
-					crossroadIndex2 = i; // 5
-					for (int j = 0; j < 4; j++) {
-						a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][j]->X); // совпал X у 2-х точек (1-ая и 2-ая)
-						b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][j]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
+				for each (int verticeIndex1 in verticeCompatibleFirstHalf) {
+					verticeIndex1 /= 10;
 
-						if (((a + b) % 2) && (verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + j))) { verticeIndex2 = j; break; }
+					for (int i = crossroadIndex1 + 1; i < VERTEX_QUANTITY - 1; i++) {
+						crossroadIndex2 = i;
+						for (int j = 0; j < 4; j++) {
+							a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][j]->X); // совпал X у 2-х точек (1-ая и 2-ая)
+							b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][j]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
+
+							if (((a + b) % 2) && (verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + j))) { verticeIndex2 = j; break; }
+						}
+						if (verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
 					}
+					if (verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
 				}
 			}
 			else if (crossroadIndex1 >= Convert::ToInt16(VERTEX_QUANTITY / 2)) {
-				verticeIndex1 = verticeCompatibleSecondHalf[rndGen->Next(0, 2)] / 10;
+				for each (int verticeIndex1 in verticeCompatibleSecondHalf) {
+					verticeIndex1 /= 10;
 
-				for (int i = crossroadIndex1 - 1; i >= 0; i--) {
-					crossroadIndex2 = i;
-					for (int j = 0; j < 4; j++) {
-						a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][j]->X); // совпал X у 2-х точек (1-ая и 2-ая)
-						b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][j]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
+					for (int i = crossroadIndex1 - 1; i >= 0; i--) {
+						crossroadIndex2 = i;
+						for (int j = 0; j < 4; j++) {
+							a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][j]->X); // совпал X у 2-х точек (1-ая и 2-ая)
+							b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][j]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
 
-						if (((a + b) % 2) && (verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + j))) { verticeIndex2 = j; break; }
+							if (((a + b) % 2) && (verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + j))) { verticeIndex2 = j; break; }
+						}
+						if (verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
 					}
+					if (verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
 				}
 			}
 
@@ -232,101 +241,11 @@ public:
 
 			if (a && !b) {
 				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, (verticeIndex1 % 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
-				Passengers[Passengers->Count - 1]->yPos::set(rndGen->Next(Math::Min(firstPoint->Y, secondPoint->Y), Math::Max(firstPoint->Y, secondPoint->Y)));
+				Passengers[Passengers->Count - 1]->yPos::set(rndGen->Next(Math::Min(firstPoint->Y, secondPoint->Y) + 20, Math::Max(firstPoint->Y, secondPoint->Y) - 20));
 			}
 			if (b && !a) {
-				Passengers[Passengers->Count - 1]->xPos::set(rndGen->Next(Math::Min(firstPoint->X, secondPoint->X), Math::Max(firstPoint->X, secondPoint->X)));
+				Passengers[Passengers->Count - 1]->xPos::set(rndGen->Next(Math::Min(firstPoint->X, secondPoint->X) + 20, Math::Max(firstPoint->X, secondPoint->X) - 20));
 				Passengers[Passengers->Count - 1]->yPos::set(firstPoint->Y - (Math::Pow(-1, verticeIndex1 / 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2)));
-			}
-
-			// !((a + b) % 2) - цикл меняет координаты точки до тех пор, пока не произойдёт ТОЛЬКО одно из 2х событий (либо a, либо b)
-			// || (crossroadIndex1 == crossroadIndex2) - условие нужно для того, чтобы избежать ситуации взятия двух точек одного перекрёстка
-			while (!((a + b) % 2) || (crossroadIndex1 == crossroadIndex2)) {
-				crossroadIndex2 = rndGen->Next(0, VERTEX_QUANTITY);
-
-				// добавить внутрь вайла проверку на самую маленькую разность совпадающих координат перекрёстков путём генерации массива ВСЕХ перекрёстков одной координаты
-
-				// цикл определяет, есть ли путь до 2-го перекрёстка
-				for (int i = 0; i < 4; i++) {
-					a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][i]->X);
-					b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][i]->Y);
-					if ((a + b) % 2) { break; }
-				}
-			}
-
-			if (a && !b) { // пассажир появится на вертикальной линии
-				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2); } // вниз
-				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = 2 * rndGen->Next(0, 2) + 1; } // вверх
-				verticeIndex2 = verticeIndex1 % 2;
-				Point^ firstPoint = Vertices[crossroadIndex1][verticeIndex1];
-				Point^ secondPoint = Vertices[crossroadIndex2][verticeIndex2];
-
-				List<int>^ ignoredIntervals = gcnew List<int>();
-
-				label9->Text = "ignoredIntervals ";
-				for (int i = 0; i < VERTEX_QUANTITY; i++) {
-					Point^ thirdPoint = Vertices[i][0];
-
-					if ((thirdPoint->Y >= Math::Min(Vertices[crossroadIndex1][0]->Y, Vertices[crossroadIndex2][0]->Y))
-						&& (thirdPoint->Y <= Math::Max(Vertices[crossroadIndex1][2]->Y, Vertices[crossroadIndex2][2]->Y))
-						&& !(ignoredIntervals->Contains(thirdPoint->Y - 20)))
-					{ ignoredIntervals->Add(thirdPoint->Y - 20); }
-				}
-
-				ignoredIntervals->Sort();
-
-				for (int i = 0; i < ignoredIntervals->Count; i++) {
-					label9->Text += Convert::ToString(String::Format("[{0}, {1}]", ignoredIntervals[i],
-						ignoredIntervals[i] + 50));
-				}
-
-				List<int>^ localRndY = gcnew List<int>(0);
-				label8->Text = "localRnd ";
-				for (int i = 0; i < ignoredIntervals->Count - 1; i++) {
-					localRndY->Add(rndGen->Next(ignoredIntervals[i] + 50, ignoredIntervals[i + 1]));
-					label8->Text += Convert::ToString(localRndY[i] + " ");
-				}
-
-				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, (verticeIndex1 % 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
-				Passengers[Passengers->Count - 1]->yPos::set(localRndY[rndGen->Next(0, localRndY->Count)]);
-			}
-			else if (b && !a) { // // пассажир появится на горизонтальной линии
-				if (crossroadIndex2 > crossroadIndex1) { verticeIndex1 = rndGen->Next(2, 4); } // справа
-				else if (crossroadIndex2 < crossroadIndex1) { verticeIndex1 = rndGen->Next(0, 2); } // слева
-				verticeIndex2 = Math::Floor(verticeIndex1 / 2) * 2;
-				Point^ firstPoint = Vertices[crossroadIndex1][verticeIndex1];
-				Point^ secondPoint = Vertices[crossroadIndex2][verticeIndex2];
-
-				List<int>^ ignoredIntervals = gcnew List<int>();
-
-				label9->Text = "ignoredIntervals ";
-				for (int i = 0; i < VERTEX_QUANTITY; i++) {
-					Point^ thirdPoint = Vertices[i][0];
-
-					if ((thirdPoint->X >= Math::Min(Vertices[crossroadIndex1][0]->X, Vertices[crossroadIndex2][0]->X))
-						&& (thirdPoint->X <= Math::Max(Vertices[crossroadIndex1][2]->X, Vertices[crossroadIndex2][2]->X))
-						&& !(ignoredIntervals->Contains(thirdPoint->X - 20)))
-					{
-						ignoredIntervals->Add(thirdPoint->X - 20);
-					}
-				}
-
-				ignoredIntervals->Sort();
-
-				for (int i = 0; i < ignoredIntervals->Count; i++) {
-					label9->Text += Convert::ToString(String::Format("[{0}, {1}]", ignoredIntervals[i],
-						ignoredIntervals[i] + 50));
-				}
-
-				List<int>^ localRndX = gcnew List<int>(0);
-				label8->Text = "localRnd ";
-				for (int i = 0; i < ignoredIntervals->Count - 1; i++) {
-					localRndX->Add(rndGen->Next(ignoredIntervals[i] + 50, ignoredIntervals[i + 1]));
-					label8->Text += Convert::ToString(localRndX[i] + " ");
-				}
-
-				Passengers[Passengers->Count - 1]->xPos::set(localRndX[rndGen->Next(0, localRndX->Count)]);
-				Passengers[Passengers->Count - 1]->yPos::set(firstPoint->Y - (Math::Pow(-1, Math::Floor(verticeIndex1 / 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
 			}
 
 			Passengers[Passengers->Count - 1]->endPoint::set(Vertices[crossroadIndex2][verticeIndex2]);
