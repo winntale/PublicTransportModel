@@ -187,10 +187,10 @@ public:
 			int crossroadIndex1 = rndGen->Next(0, VERTEX_QUANTITY);
 			int crossroadIndex2 = 0;
 
-			List<int>^ verticeCompatibleFirstHalf = gcnew List<int>(0); // 20, 32
+			List<int>^ verticeCompatibleFirstHalf = gcnew List<int>(2); // 20, 32
 			verticeCompatibleFirstHalf->Add(20); verticeCompatibleFirstHalf->Add(32);
 
-			List<int>^ verticeCompatibleSecondHalf = gcnew List<int>(0); // 01, 13
+			List<int>^ verticeCompatibleSecondHalf = gcnew List<int>(2); // 01, 13
 			verticeCompatibleSecondHalf->Add(1); verticeCompatibleSecondHalf->Add(13);
 
 			int verticeIndex1 = 0;
@@ -200,38 +200,35 @@ public:
 			bool b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][verticeIndex2]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
 
 			if (crossroadIndex1 < Convert::ToInt16(VERTEX_QUANTITY / 2)) {
-
-				for each (int verticeIndex1 in verticeCompatibleFirstHalf) {
-					verticeIndex1 /= 10;
+				for each (int verticeIndexes in verticeCompatibleFirstHalf) {
+					verticeIndex1 = verticeIndexes / 10;
+					verticeIndex2 = verticeIndexes % 10;
 
 					for (int i = crossroadIndex1 + 1; i < VERTEX_QUANTITY - 1; i++) {
 						crossroadIndex2 = i;
-						for (int j = 0; j < 4; j++) {
-							a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][j]->X); // совпал X у 2-х точек (1-ая и 2-ая)
-							b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][j]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
 
-							if (((a + b) % 2) && (verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + j))) { verticeIndex2 = j; break; }
-						}
-						if (verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
+						a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][verticeIndex2]->X); // совпал X у 2-х точек (1-ая и 2-ая)
+						b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][verticeIndex2]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
+
+						if (((a + b) % 2) && (verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + verticeIndex2))) { break; }
 					}
-					if (verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
+					if (((a + b) % 2) && verticeCompatibleFirstHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
 				}
 			}
 			else if (crossroadIndex1 >= Convert::ToInt16(VERTEX_QUANTITY / 2)) {
-				for each (int verticeIndex1 in verticeCompatibleSecondHalf) {
-					verticeIndex1 /= 10;
+				for each (int verticeIndexes in verticeCompatibleSecondHalf) {
+					verticeIndex1 = verticeIndexes / 10;
+					verticeIndex2 = verticeIndexes % 10;
 
 					for (int i = crossroadIndex1 - 1; i >= 0; i--) {
 						crossroadIndex2 = i;
-						for (int j = 0; j < 4; j++) {
-							a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][j]->X); // совпал X у 2-х точек (1-ая и 2-ая)
-							b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][j]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
 
-							if (((a + b) % 2) && (verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + j))) { verticeIndex2 = j; break; }
-						}
-						if (verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
+						a = (Vertices[crossroadIndex1][verticeIndex1]->X == Vertices[crossroadIndex2][verticeIndex2]->X); // совпал X у 2-х точек (1-ая и 2-ая)
+						b = (Vertices[crossroadIndex1][verticeIndex1]->Y == Vertices[crossroadIndex2][verticeIndex2]->Y); // совпал Y у 2-х точек (1-ая и 2-ая)
+
+						if (((a + b) % 2) && (verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + verticeIndex2))) { break; }
 					}
-					if (verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
+					if (((a + b) % 2) && verticeCompatibleSecondHalf->Contains(verticeIndex1 * 10 + verticeIndex2)) { break; }
 				}
 			}
 
@@ -243,7 +240,7 @@ public:
 				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, (verticeIndex1 % 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
 				Passengers[Passengers->Count - 1]->yPos::set(rndGen->Next(Math::Min(firstPoint->Y, secondPoint->Y) + 20, Math::Max(firstPoint->Y, secondPoint->Y) - 20));
 			}
-			if (b && !a) {
+			else if (b && !a) {
 				Passengers[Passengers->Count - 1]->xPos::set(rndGen->Next(Math::Min(firstPoint->X, secondPoint->X) + 20, Math::Max(firstPoint->X, secondPoint->X) - 20));
 				Passengers[Passengers->Count - 1]->yPos::set(firstPoint->Y - (Math::Pow(-1, verticeIndex1 / 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2)));
 			}
@@ -276,7 +273,7 @@ public:
 				while (serviceCar->state::get() == 1 || serviceCar->state::get() == 2) { serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)]; }
 				serviceCar->state::set(1);
 				Passengers[i]->state::set(1);
-				//serviceCar->WayFind(Passengers[i], Vertices, label);
+				serviceCar->WayFind(Passengers[i], Vertices, label);
 			}
 		}
 	}
