@@ -42,7 +42,7 @@ public:
 		_currentFuel = 100;
 		_state = 0;
 
-		_way = gcnew List<int>(100);
+		_way = gcnew List<int>(0);
 	}
 	~TaxiCar() {};
 
@@ -288,6 +288,8 @@ public:
 	//	// после вышеописанных действий мы получили всех ближайших соседей-точек точки vertice (той, в которой мы находимся сейчас)
 	//}
 
+
+
 	// метод поиска пути
 
 	ref class Node {
@@ -332,28 +334,65 @@ public:
 		return path;
 	}
 
+	void CrossroadRemover(List<Node^>^ newReachable, int currentNodeCrossroad, bool flag) {
+		if (flag) {
+			for each (Node^ availableNode in newReachable->ToArray()) {
+				int availableCrossroad = availableNode->vertice / 10;
+
+				if (availableCrossroad <= currentNodeCrossroad)
+					newReachable->Remove(availableNode);
+			}
+		}
+		else {
+			for each (Node^ availableNode in newReachable->ToArray()) {
+				int availableCrossroad = availableNode->vertice / 10;
+
+				if (availableCrossroad >= currentNodeCrossroad)
+					newReachable->Remove(availableNode);
+			}
+		}
+	}
+
+	bool IsEqualsCrossroads(List<Node^>^ newReachable, int vertice) {
+		bool flag = false;
+		for each (Node^ availableNode in newReachable) {
+			if ((availableNode->vertice / 10) == (vertice / 10)) {
+				flag = true;
+				break;
+			}
+		}
+		return flag;
+	}
+
 	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices, Label^ label) {
 		Random^ rndGen = gcnew Random();
 
+		// создаём массив нод, которые сейчас можно рассмотреть и массив точек, в которых мы уже были
 		List<Node^>^ reachable = gcnew List<Node^>(0);
 		List<int>^ explored = gcnew List<int>(0);
 
+		// за начальную точку возьмём индексы точки, в которую на данный момент едет машина
 		int startIndexes = _npCrossroadIndex * 10 + _npVerticeIndex;
 		Node^ startNode = gcnew Node(startIndexes);
 
+		// добавляем в массив допустимых нод стартовую ноду
 		reachable->Add(startNode);
 
+		// то же самое с точкой, которая представляет из себя начальную точку линии, где находится пассажир
 		int passIndexes = passenger->startCrossroadIndex::get() * 10 + passenger->startVerticeIndex::get();
 		Node^ passNode = gcnew Node(passIndexes);
 
 		bool a = false;
 		bool b = false;
 
+		// цикл будет работать, пока есть точки, которые можно рассмотреть
 		while (reachable->Count > 0) {
+			// задаём текущую точку (берём её случайно из массива доступных точек)
 			Node^ currentNode = reachable[rndGen->Next(0, reachable->Count)];
 			int currentNodeCrossroad = currentNode->vertice / 10;
 			int currentNodeVertice = currentNode->vertice % 10;
 
+			// условие выхода осуществляется, если мы взяли точку, которая соответствует началу линии, где находится пассажир
 			if (currentNode->vertice == passNode->vertice) {
 				_way = BuildPath(passNode);
 				for (int i = 0; i < _way->Count; i++) {
@@ -362,44 +401,88 @@ public:
 				break;
 			}
 			
+			// так как мы взяли текущую точку, то удаляем её из массива доступных и заносим в массив пройденных
 			reachable->Remove(currentNode);
 			explored->Add(currentNode->vertice);
 
-
+			// создаём массив точек, которых можно достичь ОТ текущей точки
 			List<Node^>^ newReachable = gcnew List<Node^>(0);
-			/*if (_npCrossroadIndex < passenger->startCrossroadIndex::get())*/
+
+			// проходим по всей системе дорог
 			for (int i = 0; i < VERTEX_QUANTITY; i++) {
 				for (int j = 0; j < 4; j++) {
+					// задаём индексы точки, которую сейчас рассматриваем (потенциально следующая точка)
 					int nextIndexes = i * 10 + j;
 					int nextNodeCrossroad = nextIndexes / 10;
 					int nextNodeVertice = nextIndexes % 10;
 
-					a = Vertices[currentNodeCrossroad][currentNodeVertice]->X == Vertices[nextNodeCrossroad][nextNodeVertice]->X;
-					b = Vertices[currentNodeCrossroad][currentNodeVertice]->Y == Vertices[nextNodeCrossroad][nextNodeVertice]->Y;
+					
+					a = Vertices[currentNodeCrossroad][currentNodeVertice]->X == Vertices[nextNodeCrossroad][nextNodeVertice]->X; // совпал X (вертикальное движение)
+					b = Vertices[currentNodeCrossroad][currentNodeVertice]->Y == Vertices[nextNodeCrossroad][nextNodeVertice]->Y; // совпал Y (горизонтальное движение)
 
 					Node^ nextNode = gcnew Node(nextIndexes);
+					// если совпала лишь одна координата и мы пока не прошли потенциально следующую точку
 					if (((a + b) % 2) && (explored->IndexOf(nextNode->vertice) == -1)) {
-						for each (Node^ availableNode in newReachable->ToArray()) {
-							Point^ availablePoint = Vertices[availableNode->vertice / 10][availableNode->vertice % 10];
-							Point^ currentPoint = Vertices[currentNodeCrossroad][currentNodeVertice];
-							Point^ nextPoint = Vertices[nextNodeCrossroad][nextNodeVertice];
+						if (!IsContainsVertice(newReachable, nextNode) && (currentNodeCrossroad != i)) { newReachable->Add(nextNode); }
+						
 
-							if ((((nextPoint->X == availablePoint->X) && (Math::Abs(nextPoint->Y - currentPoint->Y) < Math::Abs(availablePoint->Y - currentPoint->Y) - 20))
-								|| ((nextPoint->Y == availablePoint->Y) && (Math::Abs(nextPoint->X - currentPoint->X) < Math::Abs(availablePoint->X - currentPoint->X) - 20))
-								&& (nextNodeCrossroad != availableNode->vertice / 10)))
-							{
-								newReachable[IndexOfVertice(newReachable, availableNode)] = nextNode;
-							} // меняем точку на найденную
-						}
+						// 12 13 30 32 50 52 82 83
+						// -> 50 52 82 83
 
-						if (!IsContainsVertice(newReachable, nextNode)) { newReachable->Add(nextNode); }
+
+						//if (currentNodeVertice == 0) {
+						//	if (a) {
+						//		//nextNodeCrossroad > currentNodeCrossroad
+						//		CrossroadRemover(newReachable, currentNodeCrossroad, true);
+						//	}
+						//	else if (b) {
+						//		//nextNodeCrossroad < currentNodeCrossroad
+						//		CrossroadRemover(newReachable, currentNodeCrossroad, false);
+						//	}
+						//}
+						//if (currentNodeVertice == 1) {
+						//	//nextNodeCrossroad < currentNodeCrossroad
+						//	CrossroadRemover(newReachable, currentNodeCrossroad, false);
+						//}
+						//if (currentNodeVertice == 2) {
+						//	//nextNodeCrossroad > currentNodeCrossroad
+						//	CrossroadRemover(newReachable, currentNodeCrossroad, true);
+						//}
+						//if (currentNodeVertice == 3) {
+						//	if (a) {
+						//		//nextNodeCrossroad < currentNodeCrossroad
+						//		CrossroadRemover(newReachable, currentNodeCrossroad, false);
+						//	}
+						//	else if (b) {
+						//		//nextNodeCrossroad > currentNodeCrossroad
+						//		CrossroadRemover(newReachable, currentNodeCrossroad, true);
+						//	}
+						//}
 					}
 				}
 			}
-			/*else if (_npCrossroadIndex >= passenger->startCrossroadIndex::get())
-				for (int i = 0; i < VERTEX_QUANTITY; i++) {
 
-				}*/
+			// рассматриваем каждый элемент массива точек, в которых можно попасть от текущей (current)
+			for (int i = 0; i < newReachable->Count; i++) {
+				for each (Node^ availableNode in newReachable->ToArray()) {
+					// availablePoint - точка, в которую можно поппасть от current (то есть путь current -> available уже существует)
+					Point^ availablePoint = Vertices[availableNode->vertice / 10][availableNode->vertice % 10];
+					Point^ currentPoint = Vertices[currentNodeCrossroad][currentNodeVertice];
+					Point^ comparablePoint = Vertices[newReachable[i]->vertice / 10][newReachable[i]->vertice % 10];
+
+					// если потенциально следующая точка (nextPoint) и точка, в которую можно попасть от current (available) находятся на одной линии
+					// и расстояние от current до next меньше, чем расстояние от current до available
+					// и перекрёсток nextPoint не равен перекрёсткам availablePoint и currentPoint
+					bool sameX = (comparablePoint->X == availablePoint->X); bool sameY = (comparablePoint->Y == availablePoint->Y);
+					bool IsnpYCloser = (Math::Abs(comparablePoint->Y - currentPoint->Y) < Math::Abs(availablePoint->Y - currentPoint->Y) - 20);
+					bool IsnpXCloser = (Math::Abs(comparablePoint->X - currentPoint->X) < Math::Abs(availablePoint->X - currentPoint->X) - 20);
+					if (((sameX && IsnpYCloser) || (sameY && IsnpXCloser)) && ((newReachable[i]->vertice / 10 != availableNode->vertice / 10) && (newReachable[i]->vertice / 10 != currentNodeCrossroad)
+						&& (newReachable[i]->vertice % 10 == availableNode->vertice % 10)))
+					{
+						newReachable[newReachable->IndexOf(availableNode)] = newReachable[i];
+					} // то меняем в массиве доступных точек значение рассматриваемого индекса на nextNode
+				}
+			}
 
 			for each (Node^ adjacent in newReachable) {
 				if (!IsContainsVertice(reachable, adjacent)) {
@@ -407,6 +490,7 @@ public:
 					reachable->Add(adjacent);
 				}
 			}
+			newReachable = nullptr;
 		}
 
 
