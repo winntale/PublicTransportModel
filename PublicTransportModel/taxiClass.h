@@ -302,6 +302,26 @@ public:
 		~Node() {}
 	};
 
+	bool IsContainsVertice(List<Node^>^ Nodes, Node^ newNode) {
+		bool flag = false;
+		for each (Node^ node in Nodes)
+			if (node->vertice == newNode->vertice) {
+				flag = true;
+				break;
+			}
+		return flag;
+	}
+
+	int IndexOfVertice(List<Node^>^ Nodes, Node^ newNode) {
+		int index = -1;
+		for each (Node^ node in Nodes)
+			if (node->vertice == newNode->vertice) {
+				index = Nodes->IndexOf(node);
+				break;
+			}
+		return index;
+	}
+
 	List<int>^ BuildPath(Node^ passNode) {
 		List<int>^ path = gcnew List<int>(0);
 
@@ -316,7 +336,7 @@ public:
 		Random^ rndGen = gcnew Random();
 
 		List<Node^>^ reachable = gcnew List<Node^>(0);
-		List<Node^>^ explored = gcnew List<Node^>(0);
+		List<int>^ explored = gcnew List<int>(0);
 
 		int startIndexes = _npCrossroadIndex * 10 + _npVerticeIndex;
 		Node^ startNode = gcnew Node(startIndexes);
@@ -343,7 +363,7 @@ public:
 			}
 			
 			reachable->Remove(currentNode);
-			explored->Add(currentNode);
+			explored->Add(currentNode->vertice);
 
 
 			List<Node^>^ newReachable = gcnew List<Node^>(0);
@@ -358,7 +378,7 @@ public:
 					b = Vertices[currentNodeCrossroad][currentNodeVertice]->Y == Vertices[nextNodeCrossroad][nextNodeVertice]->Y;
 
 					Node^ nextNode = gcnew Node(nextIndexes);
-					if (((a + b) % 2) && !explored->Contains(nextNode)) {
+					if (((a + b) % 2) && (explored->IndexOf(nextNode->vertice) == -1)) {
 						for each (Node^ availableNode in newReachable->ToArray()) {
 							Point^ availablePoint = Vertices[availableNode->vertice / 10][availableNode->vertice % 10];
 							Point^ currentPoint = Vertices[currentNodeCrossroad][currentNodeVertice];
@@ -368,11 +388,11 @@ public:
 								|| ((nextPoint->Y == availablePoint->Y) && (Math::Abs(nextPoint->X - currentPoint->X) < Math::Abs(availablePoint->X - currentPoint->X) - 20))
 								&& (nextNodeCrossroad != availableNode->vertice / 10)))
 							{
-								newReachable[newReachable->IndexOf(availableNode)] = nextNode;
+								newReachable[IndexOfVertice(newReachable, availableNode)] = nextNode;
 							} // меняем точку на найденную
 						}
 
-						if (!newReachable->Contains(nextNode)) { newReachable->Add(nextNode); }
+						if (!IsContainsVertice(newReachable, nextNode)) { newReachable->Add(nextNode); }
 					}
 				}
 			}
@@ -382,7 +402,7 @@ public:
 				}*/
 
 			for each (Node^ adjacent in newReachable) {
-				if (!reachable->Contains(adjacent)) {
+				if (!IsContainsVertice(reachable, adjacent)) {
 					adjacent->previous = currentNode;
 					reachable->Add(adjacent);
 				}
