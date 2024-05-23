@@ -10,6 +10,21 @@ using namespace System::Collections::Generic;
 #include "passengerClass.h"
 
 
+// класс, используемый для поиска пути
+public ref class Node {
+public:
+	int vertice;
+	Node^ previous;
+	String^ direction; // направление, куда двигались, чтобы попасть из previous в текущую ноду
+
+	Node(int _vertice) {
+		vertice = _vertice;
+		previous = nullptr;
+		direction = "";
+	}
+	~Node() {}
+};
+
 public ref class TaxiCar {
 private:
 	int _xPos;
@@ -31,7 +46,7 @@ private:
 	Point^ _nextPoint2;
 	int _npCrossroadIndex2;
 	int _npVerticeIndex2;
-	List<int>^ _way;
+	List<Node^>^ _way;
 
 public:
 	TaxiCar() {
@@ -42,7 +57,7 @@ public:
 		_currentFuel = 100;
 		_state = 0;
 
-		_way = gcnew List<int>(0);
+		_way = gcnew List<Node^>(0);
 	}
 	~TaxiCar() {};
 
@@ -125,8 +140,8 @@ public:
 		void set(int _value) { _npVerticeIndex2 = _value; }
 	}
 
-	property List<int>^ way {
-		List<int>^ get() { return _way; }
+	property List<Node^>^ way {
+		List<Node^>^ get() { return _way; }
 	}
 
 	// метод описания движения и поворота в 0 состоянии машины (завершён)
@@ -248,63 +263,7 @@ public:
 	}
 
 
-	//void PointFinder(Point^ currentPoint, List<int>^ _way, array<array<Point^>^>^ Vertices, int iCur, int iLimit) {
-	//	bool a = false; bool b = false;
-	//	for (iCur; iCur > iLimit; iCur--) {
-	//		for (int j = 3; j >= 0; j--) {
-	//			Point^ nextPoint = Vertices[iCur][j];
-	//			// условия совпадения одной из координат
-	//			a = currentPoint->X == nextPoint->X;
-	//			b = currentPoint->Y == nextPoint->Y;
-
-	//			//if ((a && !b) && way
-
-
-	//			List<int>^ reachableCrossroads = gcnew List<int>(reachable->Count);
-	//			for each (int crossroad in reachable) { reachableCrossroads->Add(crossroad / 10); }
-
-	//			// если совпала только одна координата И в массиве достигаемых точек не содержится перекрёсток
-	//			if (((a + b) % 2) && (reachableCrossroads->IndexOf(iCur) == -1)) {
-	//				// проверяем для каждого перекрёстка в массиве достигаемых перекрёстков
-	//				List<int>^ reachableCopy = reachable;
-	//				for each (int crossroad in reachable->ToArray()) {
-	//					Point^ availablePoint = Vertices[crossroad / 10][crossroad % 10];
-	//					// если найденная точка расположена на одной линии с одной из уже существующих точек в достигаемых и имеет меньшее расстояние с текущей точкой
-	//					if (((nextPoint->X == availablePoint->X) && (Math::Abs(nextPoint->Y - currentPoint->Y) < Math::Abs(availablePoint->Y - currentPoint->Y) - 20))
-	//						|| ((nextPoint->Y == availablePoint->Y) && (Math::Abs(nextPoint->X - currentPoint->X) < Math::Abs(availablePoint->X - currentPoint->X) - 20)))
-	//					{
-	//						reachableCopy[reachableCopy->IndexOf(crossroad)] = (iCur * 10) + j;
-	//					} // меняем точку на найденную
-	//				}
-	//				reachable = reachableCopy;
-
-	//				// если цикл по массиву, описанный выше, не заменил уже существующую точку на только что найденную - добавляем как новую
-	//				// выходя из вложенного цикла (по j)
-	//				if (reachable->IndexOf((iCur * 10) + j) == -1) { reachable->Add((iCur * 10) + j); break; }
-	//			}
-	//		}
-	//	}
-	//	reachable->Remove(reachable[0]);
-	//	// после вышеописанных действий мы получили всех ближайших соседей-точек точки vertice (той, в которой мы находимся сейчас)
-	//}
-
-
-
 	// метод поиска пути
-
-	ref class Node {
-	public:
-		int vertice;
-		Node^ previous;
-		String^ direction; // направление, куда двигались, чтобы попасть из previous в текущую ноду
-		
-		Node(int _vertice) {
-			vertice = _vertice;
-			previous = nullptr;
-			direction = nullptr;
-		}
-		~Node() {}
-	};
 
 	bool IsContainsVertice(List<Node^>^ Nodes, Node^ newNode) {
 		bool flag = false;
@@ -326,17 +285,18 @@ public:
 		return index;
 	}
 
-	List<int>^ BuildPath(Node^ passNode) {
-		List<int>^ path = gcnew List<int>(0);
+	List<Node^>^ BuildPath(Node^ passNode) {
+		List<Node^>^ path = gcnew List<Node^>(0);
 
-		while (passNode->previous != nullptr) {
-			path->Add(passNode->vertice);
+		while (passNode != nullptr) {
+			path->Add(passNode);
 			passNode = passNode->previous;
 		}
 		return path;
 	}
 
 	void CrossroadRemover(List<Node^>^ newReachable, int currentNodeCrossroad, bool flag) {
+		// если флаг в положении true, то оставляем только перекрёстки с индексами больше, чем текущий
 		if (flag) {
 			for each (Node^ availableNode in newReachable->ToArray()) {
 				int availableCrossroad = availableNode->vertice / 10;
@@ -398,7 +358,7 @@ public:
 			if (currentNode->vertice == passNode->vertice) {
 				_way = BuildPath(passNode);
 				for (int i = 0; i < _way->Count; i++) {
-					label->Text += Convert::ToString(String::Format(" {0}", _way[i]));
+					label->Text += Convert::ToString(_way[i]->vertice);
 				}
 				break;
 			}
@@ -425,47 +385,43 @@ public:
 					Node^ nextNode = gcnew Node(nextIndexes);
 					// если совпала лишь одна координата и мы пока не прошли потенциально следующую точку
 					if (((a + b) % 2) && (explored->IndexOf(nextNode->vertice) == -1) && !IsContainsVertice(newReachable, nextNode) && (currentNodeCrossroad != i)) {
-						if (a && (nextNodeCrossroad > currentNodeCrossroad)) { nextNode->direction == "down"; }
+						if (currentNodeVertice == 0) {
+							if (a && nextNodeCrossroad > currentNodeCrossroad)
+								newReachable->Add(nextNode);
+							else if (b && nextNodeCrossroad < currentNodeCrossroad)
+								newReachable->Add(nextNode);
+						}
+						else if (currentNodeVertice == 1 && nextNodeCrossroad < currentNodeCrossroad)
+							newReachable->Add(nextNode);
+						else if (currentNodeVertice == 2 && nextNodeCrossroad > currentNodeCrossroad)
+							newReachable->Add(nextNode);
+						else if (currentNodeVertice == 3) {
+							if (a && nextNodeCrossroad < currentNodeCrossroad)
+								newReachable->Add(nextNode);
+							else if (b && nextNodeCrossroad > currentNodeCrossroad)
+								newReachable->Add(nextNode);
+						}
+						/*if (a && (nextNodeCrossroad > currentNodeCrossroad)) { nextNode->direction == "down"; }
 						else if (a && (nextNodeCrossroad < currentNodeCrossroad)) { nextNode->direction == "up"; }
 						
 						else if (b && (nextNodeCrossroad > currentNodeCrossroad)) { nextNode->direction == "right"; }
 						else { nextNode->direction == "left"; }
 
-						newReachable->Add(nextNode);
+						
+						if (currentNode->direction == "") { newReachable->Add(nextNode); }
+						else if (currentNode->direction == "up" && nextNode->direction != "down") { newReachable->Add(nextNode); }
+						else if (currentNode->direction == "down" && nextNode->direction != "up") { newReachable->Add(nextNode); }
+						else if (currentNode->direction == "right" && nextNode->direction != "left") { newReachable->Add(nextNode); }
+						else if (currentNode->direction == "left" && nextNode->direction != "right") { newReachable->Add(nextNode); }*/
+
+						
 						
 
 						// 12 13 30 32 50 52 82 83
 						// -> 50 52 82 83
 
 
-						if (currentNodeVertice == 0) {
-							if (a) {
-								//nextNodeCrossroad > currentNodeCrossroad
-								CrossroadRemover(newReachable, currentNodeCrossroad, true);
-							}
-							else if (b) {
-								//nextNodeCrossroad < currentNodeCrossroad
-								CrossroadRemover(newReachable, currentNodeCrossroad, false);
-							}
-						}
-						if (currentNodeVertice == 1) {
-							//nextNodeCrossroad < currentNodeCrossroad
-							CrossroadRemover(newReachable, currentNodeCrossroad, false);
-						}
-						if (currentNodeVertice == 2) {
-							//nextNodeCrossroad > currentNodeCrossroad
-							CrossroadRemover(newReachable, currentNodeCrossroad, true);
-						}
-						if (currentNodeVertice == 3) {
-							if (a) {
-								//nextNodeCrossroad < currentNodeCrossroad
-								CrossroadRemover(newReachable, currentNodeCrossroad, false);
-							}
-							else if (b) {
-								//nextNodeCrossroad > currentNodeCrossroad
-								CrossroadRemover(newReachable, currentNodeCrossroad, true);
-							}
-						}
+
 					}
 				}
 			}
