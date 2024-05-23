@@ -296,10 +296,12 @@ public:
 	public:
 		int vertice;
 		Node^ previous;
+		String^ direction; // направление, куда двигались, чтобы попасть из previous в текущую ноду
 		
 		Node(int _vertice) {
 			vertice = _vertice;
 			previous = nullptr;
+			direction = nullptr;
 		}
 		~Node() {}
 	};
@@ -422,42 +424,48 @@ public:
 
 					Node^ nextNode = gcnew Node(nextIndexes);
 					// если совпала лишь одна координата и мы пока не прошли потенциально следующую точку
-					if (((a + b) % 2) && (explored->IndexOf(nextNode->vertice) == -1)) {
-						if (!IsContainsVertice(newReachable, nextNode) && (currentNodeCrossroad != i)) { newReachable->Add(nextNode); }
+					if (((a + b) % 2) && (explored->IndexOf(nextNode->vertice) == -1) && !IsContainsVertice(newReachable, nextNode) && (currentNodeCrossroad != i)) {
+						if (a && (nextNodeCrossroad > currentNodeCrossroad)) { nextNode->direction == "down"; }
+						else if (a && (nextNodeCrossroad < currentNodeCrossroad)) { nextNode->direction == "up"; }
+						
+						else if (b && (nextNodeCrossroad > currentNodeCrossroad)) { nextNode->direction == "right"; }
+						else { nextNode->direction == "left"; }
+
+						newReachable->Add(nextNode);
 						
 
 						// 12 13 30 32 50 52 82 83
 						// -> 50 52 82 83
 
 
-						//if (currentNodeVertice == 0) {
-						//	if (a) {
-						//		//nextNodeCrossroad > currentNodeCrossroad
-						//		CrossroadRemover(newReachable, currentNodeCrossroad, true);
-						//	}
-						//	else if (b) {
-						//		//nextNodeCrossroad < currentNodeCrossroad
-						//		CrossroadRemover(newReachable, currentNodeCrossroad, false);
-						//	}
-						//}
-						//if (currentNodeVertice == 1) {
-						//	//nextNodeCrossroad < currentNodeCrossroad
-						//	CrossroadRemover(newReachable, currentNodeCrossroad, false);
-						//}
-						//if (currentNodeVertice == 2) {
-						//	//nextNodeCrossroad > currentNodeCrossroad
-						//	CrossroadRemover(newReachable, currentNodeCrossroad, true);
-						//}
-						//if (currentNodeVertice == 3) {
-						//	if (a) {
-						//		//nextNodeCrossroad < currentNodeCrossroad
-						//		CrossroadRemover(newReachable, currentNodeCrossroad, false);
-						//	}
-						//	else if (b) {
-						//		//nextNodeCrossroad > currentNodeCrossroad
-						//		CrossroadRemover(newReachable, currentNodeCrossroad, true);
-						//	}
-						//}
+						if (currentNodeVertice == 0) {
+							if (a) {
+								//nextNodeCrossroad > currentNodeCrossroad
+								CrossroadRemover(newReachable, currentNodeCrossroad, true);
+							}
+							else if (b) {
+								//nextNodeCrossroad < currentNodeCrossroad
+								CrossroadRemover(newReachable, currentNodeCrossroad, false);
+							}
+						}
+						if (currentNodeVertice == 1) {
+							//nextNodeCrossroad < currentNodeCrossroad
+							CrossroadRemover(newReachable, currentNodeCrossroad, false);
+						}
+						if (currentNodeVertice == 2) {
+							//nextNodeCrossroad > currentNodeCrossroad
+							CrossroadRemover(newReachable, currentNodeCrossroad, true);
+						}
+						if (currentNodeVertice == 3) {
+							if (a) {
+								//nextNodeCrossroad < currentNodeCrossroad
+								CrossroadRemover(newReachable, currentNodeCrossroad, false);
+							}
+							else if (b) {
+								//nextNodeCrossroad > currentNodeCrossroad
+								CrossroadRemover(newReachable, currentNodeCrossroad, true);
+							}
+						}
 					}
 				}
 			}
@@ -474,10 +482,10 @@ public:
 					// и расстояние от current до next меньше, чем расстояние от current до available
 					// и перекрёсток nextPoint не равен перекрёсткам availablePoint и currentPoint
 					bool sameX = (comparablePoint->X == availablePoint->X); bool sameY = (comparablePoint->Y == availablePoint->Y);
-					bool IsnpYCloser = (Math::Abs(comparablePoint->Y - currentPoint->Y) < Math::Abs(availablePoint->Y - currentPoint->Y) - 20);
-					bool IsnpXCloser = (Math::Abs(comparablePoint->X - currentPoint->X) < Math::Abs(availablePoint->X - currentPoint->X) - 20);
-					if (((sameX && IsnpYCloser) || (sameY && IsnpXCloser)) && ((newReachable[i]->vertice / 10 != availableNode->vertice / 10) && (newReachable[i]->vertice / 10 != currentNodeCrossroad)
-						&& (newReachable[i]->vertice % 10 == availableNode->vertice % 10)))
+					bool IsnpYCloser = (Math::Abs(comparablePoint->Y - currentPoint->Y) < Math::Abs(availablePoint->Y - currentPoint->Y) - 60);
+					bool IsnpXCloser = (Math::Abs(comparablePoint->X - currentPoint->X) < Math::Abs(availablePoint->X - currentPoint->X) - 60);
+					if (((sameX && IsnpYCloser) || (sameY && IsnpXCloser)) && (newReachable[i]->vertice / 10 != availableNode->vertice / 10) && (newReachable[i]->vertice / 10 != currentNodeCrossroad)
+						&& (newReachable[i]->vertice % 10 == availableNode->vertice % 10))
 					{
 						newReachable[newReachable->IndexOf(availableNode)] = newReachable[i];
 					} // то меняем в массиве доступных точек значение рассматриваемого индекса на nextNode
