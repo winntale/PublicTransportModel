@@ -2,6 +2,7 @@
 
 
 using namespace System;
+using namespace System::Threading;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 using namespace System::Collections::Generic;
@@ -9,6 +10,7 @@ using namespace System::Collections::Generic;
 #include "Defines.h"
 #include "passengerClass.h"
 
+#include <time.h>
 
 // класс, используемый для поиска пути
 public ref class Node {
@@ -46,9 +48,20 @@ private:
 	Point^ _nextPoint2;
 	int _npCrossroadIndex2;
 	int _npVerticeIndex2;
+
 	List<Node^>^ _way;
+	Passenger^ _currentClient;
+
+	float _tripDuration; // в секундах
 
 public:
+
+	delegate void HandlerTakeOnPassenger(Passenger^ passenger, array<array<Point^>^>^ Vertices);
+	delegate void HandlerDropOffPassenger();
+
+	event HandlerTakeOnPassenger^ EventTakeOn;
+	event HandlerDropOffPassenger^ EventDropOff;
+
 	TaxiCar() {
 		_xPos = 0;
 		_yPos = 0;
@@ -58,6 +71,9 @@ public:
 		_state = 0;
 
 		_way = gcnew List<Node^>(0);
+		_tripDuration = 0;
+
+		EventTakeOn += gcnew TaxiCar::HandlerTakeOnPassenger(this, &TaxiCar::onTakeOn);
 	}
 	~TaxiCar() {};
 
@@ -142,6 +158,16 @@ public:
 
 	property List<Node^>^ way {
 		List<Node^>^ get() { return _way; }
+	}
+
+	property Passenger^ currentClient {
+		Passenger^ get() { return _currentClient; }
+		void set(Passenger^ _value) { _currentClient = _value; }
+	}
+
+	property float tripDuration {
+		float get() { return _tripDuration; }
+		void set(float _value) { _tripDuration = _value; }
 	}
 
 	// метод описания движения и поворота в 0 состоянии машины (завершён)
@@ -262,12 +288,10 @@ public:
 		}
 	}
 
-
-	// метод поиска пути
-
+	// метод проверяет содержится ли в массиве нод (Nodes) индексы точки newNode
 	bool IsContainsVertice(List<Node^>^ Nodes, Node^ newNode) {
 		bool flag = false;
-		for each (Node^ node in Nodes)
+		for each (Node ^ node in Nodes)
 			if (node->vertice == newNode->vertice) {
 				flag = true;
 				break;
@@ -275,9 +299,10 @@ public:
 		return flag;
 	}
 
+	// метод возвращает первый индекс элемента newNode в массиве Nodes по соответствиям индексов точек (-1 если их нет)
 	int IndexOfVertice(List<Node^>^ Nodes, Node^ newNode) {
 		int index = -1;
-		for each (Node^ node in Nodes)
+		for each (Node ^ node in Nodes)
 			if (node->vertice == newNode->vertice) {
 				index = Nodes->IndexOf(node);
 				break;
@@ -285,9 +310,10 @@ public:
 		return index;
 	}
 
+	// метод проверяет, есть ли данный перекрёсток в массиве newReachable
 	bool IsEqualsCrossroads(List<Node^>^ newReachable, int vertice) {
 		bool flag = false;
-		for each (Node^ availableNode in newReachable) {
+		for each (Node ^ availableNode in newReachable) {
 			if ((availableNode->vertice / 10) == (vertice / 10)) {
 				flag = true;
 				break;
@@ -296,6 +322,7 @@ public:
 		return flag;
 	}
 
+	// метод строит путь от начальной точки до начала линии пассажира passNode путём обращения к ссылкам previous
 	List<Node^>^ BuildPath(Node^ passNode, Node^ passEndNode) {
 		List<Node^>^ path = gcnew List<Node^>(0);
 		path->Add(passEndNode);
@@ -306,6 +333,7 @@ public:
 		return path;
 	}
 
+	// метод поиска пути (заполнения ссылок previous для reachable точек)
 	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices, Label^ label11, Label^ label12) {
 		label11->Text = "way";
 		Random^ rndGen = gcnew Random();
@@ -358,7 +386,7 @@ public:
 				}
 				break;
 			}
-			
+
 			// так как мы взяли текущую точку, то удаляем её из массива доступных и заносим в массив пройденных
 			reachable->Remove(currentNode);
 			explored->Add(currentNode->vertice);
@@ -374,7 +402,7 @@ public:
 					int nextNodeCrossroad = nextIndexes / 10;
 					int nextNodeVertice = nextIndexes % 10;
 
-					
+
 					a = Vertices[currentNodeCrossroad][currentNodeVertice]->X == Vertices[nextNodeCrossroad][nextNodeVertice]->X; // совпал X (вертикальное движение)
 					b = Vertices[currentNodeCrossroad][currentNodeVertice]->Y == Vertices[nextNodeCrossroad][nextNodeVertice]->Y; // совпал Y (горизонтальное движение)
 
@@ -417,7 +445,7 @@ public:
 
 			// рассматриваем каждый элемент массива точек, в которых можно попасть от текущей (current)
 			for (int i = 0; i < newReachable->Count; i++) {
-				for each (Node^ availableNode in newReachable->ToArray()) {
+				for each (Node ^ availableNode in newReachable->ToArray()) {
 					// availablePoint - точка, в которую можно поппасть от current (то есть путь current -> available уже существует)
 					Point^ availablePoint = Vertices[availableNode->vertice / 10][availableNode->vertice % 10];
 					Point^ currentPoint = Vertices[currentNodeCrossroad][currentNodeVertice];
@@ -437,7 +465,7 @@ public:
 				}
 			}
 
-			for each (Node^ adjacent in newReachable) {
+			for each (Node ^ adjacent in newReachable) {
 				if (!IsContainsVertice(reachable, adjacent)) {
 					adjacent->previous = currentNode;
 					reachable->Add(adjacent);
@@ -447,8 +475,136 @@ public:
 		}
 	}
 
-	void MoveToPassenger() {
-		 // практически аналог move
+	void onTakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
+		Thread::Sleep(1000);
+		_state = 2;
+		passenger->state::set(2);
+
+		Random^ rndGen = gcnew Random();
+		int verticeIndex1 = passenger->startNode->vertice % 10;
+
+		int crossroadIndex2 = _way[0]->vertice / 10;
+		int verticeIndex2 = _way[0]->vertice % 10;
+
+		int crossroadIndex3 = rndGen->Next(0, VERTEX_QUANTITY);
+		int verticeIndex3 = rndGen->Next(0, 4);
+
+		bool a1 = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][verticeIndex3]->X); // совпал X у 2-ой и 3-й точек
+		bool b1 = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][verticeIndex3]->Y); // совпал Y у 2-ой и 3-й точек
+
+		// генерация следующей 3ей точки
+		if (_way[0]->direction == "up" || _way[0]->direction == "down") { // машина изначально поедет по вертикали (корректировка 1-ой точки)
+			while (!b1 || a1 || (crossroadIndex3 == crossroadIndex2)) { // пока не найден путь по горизонтали
+				crossroadIndex3 = rndGen->Next(0, VERTEX_QUANTITY);
+
+				for (int i = 0; i < 4; i++) {
+					a1 = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][i]->X);
+					b1 = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][i]->Y);
+					if (b1 && !a1) { break; }
+				}
+			}
+
+			if (crossroadIndex3 > crossroadIndex2) {
+				verticeIndex2 = (verticeIndex1 % 2) + 2;
+				verticeIndex3 = rndGen->Next(2, 4);
+			}
+			else if (crossroadIndex3 < crossroadIndex2) {
+				verticeIndex2 = (verticeIndex1 % 2);
+				verticeIndex3 = rndGen->Next(0, 2);
+			}
+		}
+		else if (_way[0]->direction == "left" || _way[0]->direction == "right") { // машина изначально поедет по горизонтали
+			while (!a1 || b1 || (crossroadIndex3 == crossroadIndex2)) { // пока не найден путь по вертикали
+				crossroadIndex3 = rndGen->Next(0, VERTEX_QUANTITY);
+
+				for (int i = 0; i < 4; i++) {
+					a1 = (Vertices[crossroadIndex2][verticeIndex2]->X == Vertices[crossroadIndex3][i]->X);
+					b1 = (Vertices[crossroadIndex2][verticeIndex2]->Y == Vertices[crossroadIndex3][i]->Y);
+					if (a1 && !b1) { break; }
+				}
+			}
+
+			if (crossroadIndex3 > crossroadIndex2) {
+				verticeIndex2 = (verticeIndex1 / 2) * 2;
+				verticeIndex3 = 2 * rndGen->Next(0, 2);
+			}
+			else if (crossroadIndex3 < crossroadIndex2) {
+				verticeIndex2 = (verticeIndex1 / 2) * 2 + 1;
+				verticeIndex3 = 2 * rndGen->Next(0, 2) + 1;
+			}
+		}
+
+		//заполнение полей объекта
+		_nextPoint = Vertices[crossroadIndex2][verticeIndex2];
+		_npCrossroadIndex = crossroadIndex2;
+		_npVerticeIndex = verticeIndex2;
+
+		_nextPoint2 = Vertices[crossroadIndex3][verticeIndex3];
+		_npCrossroadIndex2 = crossroadIndex3;
+		_npVerticeIndex2 = verticeIndex3;
+	}
+
+	void TakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
+		EventTakeOn(passenger, Vertices);
+	}
+
+	void IfTaxiIsHere(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
+		bool isTaxiHere = false;
+
+		if (passenger->endNode->direction == "up") { isTaxiHere = (((passenger->xPos::get() - _xPos) < 60) && (Math::Abs(_yPos - (passenger->yPos::get() - (TAXICAR_IMG_HEIGHT / 2))) < SPEED)); }
+		else if (passenger->endNode->direction == "down") { isTaxiHere = (((_xPos - passenger->xPos::get()) < 60) && (Math::Abs(_yPos - (passenger->yPos::get() - (TAXICAR_IMG_HEIGHT / 2))) < SPEED)); }
+		else if (passenger->endNode->direction == "right") { isTaxiHere = ((Math::Abs(_xPos - (passenger->xPos::get() - (TAXICAR_IMG_HEIGHT / 2))) < SPEED) && ((passenger->yPos::get() - _yPos) < 120)); }
+		else if (passenger->endNode->direction == "left") { isTaxiHere = ((Math::Abs(_xPos - (passenger->xPos::get() - (TAXICAR_IMG_HEIGHT / 2))) < SPEED) && ((_yPos - passenger->yPos::get()) < 120)); }
+
+		if (isTaxiHere) {
+			TakeOn(passenger, Vertices);
+		}
+	}
+
+	void MoveToPassenger(array<array<Point^>^>^ Vertices, Passenger^ passenger) {
+		_direction = _way[0]->direction;
+
+		if (_direction == "left") { _xPos -= SPEED; }
+		else if (_direction == "right") { _xPos += SPEED; }
+
+		else if (_direction == "down") { _yPos += SPEED; }
+		else if (_direction == "up") { _yPos -= SPEED; }
+
+		Point^ nextWayPoint = Vertices[_way[0]->vertice / 10][_way[0]->vertice % 10];
+
+		bool isTurned = false;
+
+			
+		if (_direction == "up" || _direction == "down") {
+			// машина достигла Y (двигалась по вертикали)
+			if ((Math::Abs(_yPos - (nextWayPoint->Y - (TAXICAR_IMG_HEIGHT / 2))) < SPEED) && !isTurned) {
+				_yPos = nextWayPoint->Y - (TAXICAR_IMG_HEIGHT / 2); // корректировка Y
+				_way->Remove(_way[0]);
+
+				isTurned = true;
+			}
+		}
+		else if (_direction == "right" || _direction == "left") {
+			// машина достигла X (двигалась по горизонтали)
+			if ((Math::Abs(_xPos - (nextWayPoint->X - (TAXICAR_IMG_HEIGHT / 2))) < SPEED) && !isTurned) {
+				_xPos = nextWayPoint->X - (TAXICAR_IMG_HEIGHT / 2); // корректировка X
+				_way->Remove(_way[0]);
+
+				isTurned = true;
+			}
+		}
+
+		if (_way->Count == 1) {
+			IfTaxiIsHere(passenger, Vertices);
+		}
+	}
+
+	void onDropOff(Passenger^ passenger) {
+		if (tripDuration > 10) {
+			Thread::Sleep(1000);
+			_state = 0;
+			passenger->state::set(3);
+		}
 	}
 
 };

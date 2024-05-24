@@ -22,6 +22,7 @@ public:
 		cordinates = gcnew array<Point^>(VERTEX_QUANTITY) { Point(151, 39), Point(151, 290), Point(151, 792),
 			Point(402, 39), Point(402, 290), Point(402, 541), Point(402, 792), Point(653, 39), Point(653, 290), Point(653, 541), Point(904, 290), Point(904, 541), Point(904, 792) };
 		Vertices = gcnew array<array<Point^>^>(VERTEX_QUANTITY);
+
 	}
 	~MyEnvironment() {};
 
@@ -177,7 +178,7 @@ public:
 		// 2) направление движения (direction)
 	}
 
-	void PassengerSpawn(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10) {
+	void PassengerSpawn(Label^ label3, Label^ label4, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10) {
 		Random^ rndGen = gcnew Random();
 		int randomNumber = rndGen->Next(0, 1001);
 
@@ -257,8 +258,6 @@ public:
 			label3->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex1, verticeIndex1));
 			label4->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex2, verticeIndex2));
 
-			label5->Text = Convert::ToString(String::Format("{0} {1}", Passengers[Passengers->Count - 1]->xPos::get(), Passengers[Passengers->Count - 1]->yPos::get()));
-
 			label6->Text = Convert::ToString(String::Format("{0} {1}", Vertices[crossroadIndex1][verticeIndex1]->X, Vertices[crossroadIndex1][verticeIndex1]->Y));
 			label7->Text = Convert::ToString(String::Format("{0} {1}", Vertices[crossroadIndex2][verticeIndex2]->X, Vertices[crossroadIndex2][verticeIndex2]->Y));
 
@@ -274,20 +273,33 @@ public:
 				TaxiCar^ serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)];
 				while (serviceCar->state::get() == 1 || serviceCar->state::get() == 2) { serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)]; }
 				serviceCar->state::set(1);
+				serviceCar->currentClient::set(Passengers[i]);
 				Passengers[i]->state::set(1);
+				Passengers[i]->serviceCar::set(serviceCar);
 				serviceCar->WayFind(Passengers[i], Vertices, label11, label12);
 			}
 		}
 	}
 
+
+
 	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10, Label^ label11, Label^ label12) {
 		for (int i = 0; i < TaxiCars->Count; i++) {
 			if (TaxiCars[i]->state::get() == 0) { TaxiCars[i]->Move(Vertices); }
-			else if (TaxiCars[i]->state::get() == 1) { TaxiCars[i]->MoveToPassenger(); }
+			else if (TaxiCars[i]->state::get() == 1) { TaxiCars[i]->MoveToPassenger(Vertices, TaxiCars[i]->currentClient::get()); }
+			else if (TaxiCars[i]->state::get() == 2) {
+				TaxiCars[i]->tripDuration::set(TaxiCars[i]->tripDuration::get() + 0.05);
+				label5->Text = Convert::ToString(TaxiCars[i]->tripDuration::get());
+				TaxiCars[i]->Move(Vertices);
+			}
 		}
-		PassengerSpawn(label3, label4, label5, label6, label7, label8, label9, label10);
+		PassengerSpawn(label3, label4, label6, label7, label8, label9, label10);
 		TaxiChoise(label11, label12);
-		//IfTaxiIsGone();
+
+		for (int i = 0; i < Passengers->Count; i++) {
+			if ((Passengers[i]->state == 3) && (Passengers[i]->moveActions::get() < 5)) { Passengers[i]->MoveAway(); }
+			else if ((Passengers[i]->state == 3) && (Passengers[i]->moveActions::get() >= 5)) { Passengers->Remove(Passengers[i]); }
+		}
 	}
 	
 };

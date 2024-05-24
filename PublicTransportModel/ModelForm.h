@@ -356,9 +356,11 @@ namespace PublicTransportModel {
 
 		   Void DrawPassengers(Graphics^ _graf) {
 			   for (int i = 0; i < env->Passengers->Count; i++) {
-				   Bitmap^ passengerImg = gcnew Bitmap("..\\forPTM\\passenger.png");
+				   if (env->Passengers[i]->state::get() != 2) {
+					   Bitmap^ passengerImg = gcnew Bitmap("..\\forPTM\\passenger.png");
 
-				   _graf->DrawImage(passengerImg, env->Passengers[i]->xPos::get(), env->Passengers[i]->yPos::get(), 16, 16);
+					   _graf->DrawImage(passengerImg, env->Passengers[i]->xPos::get(), env->Passengers[i]->yPos::get(), 16, 16);
+				   }
 			   }
 		   }
 
