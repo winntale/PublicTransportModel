@@ -235,22 +235,24 @@ public:
 			Point^ firstPoint = Vertices[crossroadIndex1][verticeIndex1];
 			Point^ secondPoint = Vertices[crossroadIndex2][verticeIndex2];
 
+			Passengers[Passengers->Count - 1]->startNode::set(gcnew Node(crossroadIndex1 * 10 + verticeIndex1));
+			Node^ passEndNode = gcnew Node(crossroadIndex2 * 10 + verticeIndex2);
+			passEndNode->previous = Passengers[Passengers->Count - 1]->startNode::get();
 
 			if (a && !b) {
+				if (crossroadIndex2 > crossroadIndex1) { passEndNode->direction = "down"; }
+				else if (crossroadIndex2 < crossroadIndex1) { passEndNode->direction = "up"; }
 				Passengers[Passengers->Count - 1]->xPos::set(firstPoint->X - (Math::Pow(-1, (verticeIndex1 % 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2))));
 				Passengers[Passengers->Count - 1]->yPos::set(rndGen->Next(Math::Min(firstPoint->Y, secondPoint->Y) + 20, Math::Max(firstPoint->Y, secondPoint->Y) - 20));
 			}
 			else if (b && !a) {
+				if (crossroadIndex2 > crossroadIndex1) { passEndNode->direction = "right"; }
+				else if (crossroadIndex2 < crossroadIndex1) { passEndNode->direction = "left"; }
 				Passengers[Passengers->Count - 1]->xPos::set(rndGen->Next(Math::Min(firstPoint->X, secondPoint->X) + 20, Math::Max(firstPoint->X, secondPoint->X) - 20));
 				Passengers[Passengers->Count - 1]->yPos::set(firstPoint->Y - (Math::Pow(-1, verticeIndex1 / 2)) * (PASSENGER_OFFSET + (PASSENGER_HEIGHT / 2)));
 			}
 
-			Passengers[Passengers->Count - 1]->endPoint::set(Vertices[crossroadIndex2][verticeIndex2]);
-			Passengers[Passengers->Count - 1]->endCrossroadIndex::set(crossroadIndex2);
-			Passengers[Passengers->Count - 1]->endVerticeIndex::set(verticeIndex2);
-
-			Passengers[Passengers->Count - 1]->startCrossroadIndex::set(crossroadIndex1);
-			Passengers[Passengers->Count - 1]->startVerticeIndex::set(verticeIndex1);
+			Passengers[Passengers->Count - 1]->endNode::set(passEndNode);
 
 			label3->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex1, verticeIndex1));
 			label4->Text = Convert::ToString(String::Format("{0}, {1}", crossroadIndex2, verticeIndex2));
@@ -264,7 +266,7 @@ public:
 		}
 	}
 
-	void TaxiChoise(Label^ label) {
+	void TaxiChoise(Label^ label11, Label^ label12) {
 		Random^ rndGen = gcnew Random();
 		for (int i = 0; i < Passengers->Count; i++) {
 			int rndNumber = rndGen->Next(0, 101);
@@ -273,18 +275,18 @@ public:
 				while (serviceCar->state::get() == 1 || serviceCar->state::get() == 2) { serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)]; }
 				serviceCar->state::set(1);
 				Passengers[i]->state::set(1);
-				serviceCar->WayFind(Passengers[i], Vertices, label);
+				serviceCar->WayFind(Passengers[i], Vertices, label11, label12);
 			}
 		}
 	}
 
-	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10, Label^ label11) {
+	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10, Label^ label11, Label^ label12) {
 		for (int i = 0; i < TaxiCars->Count; i++) {
 			if (TaxiCars[i]->state::get() == 0) { TaxiCars[i]->Move(Vertices); }
 			else if (TaxiCars[i]->state::get() == 1) { TaxiCars[i]->MoveToPassenger(); }
 		}
 		PassengerSpawn(label3, label4, label5, label6, label7, label8, label9, label10);
-		TaxiChoise(label11);
+		TaxiChoise(label11, label12);
 		//IfTaxiIsGone();
 	}
 	

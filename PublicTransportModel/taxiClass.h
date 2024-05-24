@@ -285,36 +285,6 @@ public:
 		return index;
 	}
 
-	List<Node^>^ BuildPath(Node^ passNode) {
-		List<Node^>^ path = gcnew List<Node^>(0);
-
-		while (passNode != nullptr) {
-			path->Add(passNode);
-			passNode = passNode->previous;
-		}
-		return path;
-	}
-
-	void CrossroadRemover(List<Node^>^ newReachable, int currentNodeCrossroad, bool flag) {
-		// если флаг в положении true, то оставляем только перекрёстки с индексами больше, чем текущий
-		if (flag) {
-			for each (Node^ availableNode in newReachable->ToArray()) {
-				int availableCrossroad = availableNode->vertice / 10;
-
-				if (availableCrossroad <= currentNodeCrossroad)
-					newReachable->Remove(availableNode);
-			}
-		}
-		else {
-			for each (Node^ availableNode in newReachable->ToArray()) {
-				int availableCrossroad = availableNode->vertice / 10;
-
-				if (availableCrossroad >= currentNodeCrossroad)
-					newReachable->Remove(availableNode);
-			}
-		}
-	}
-
 	bool IsEqualsCrossroads(List<Node^>^ newReachable, int vertice) {
 		bool flag = false;
 		for each (Node^ availableNode in newReachable) {
@@ -326,7 +296,18 @@ public:
 		return flag;
 	}
 
-	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices, Label^ label) {
+	List<Node^>^ BuildPath(Node^ passNode, Node^ passEndNode) {
+		List<Node^>^ path = gcnew List<Node^>(0);
+		path->Add(passEndNode);
+		while (passNode != nullptr) {
+			path->Add(passNode);
+			passNode = passNode->previous;
+		}
+		return path;
+	}
+
+	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices, Label^ label11, Label^ label12) {
+		label11->Text = "way";
 		Random^ rndGen = gcnew Random();
 
 		// создаём массив нод, которые сейчас можно рассмотреть и массив точек, в которых мы уже были
@@ -336,13 +317,17 @@ public:
 		// за начальную точку возьмём индексы точки, в которую на данный момент едет машина
 		int startIndexes = _npCrossroadIndex * 10 + _npVerticeIndex;
 		Node^ startNode = gcnew Node(startIndexes);
+		startNode->direction = _direction;
 
 		// добавляем в массив допустимых нод стартовую ноду
 		reachable->Add(startNode);
 
 		// то же самое с точкой, которая представляет из себя начальную точку линии, где находится пассажир
-		int passIndexes = passenger->startCrossroadIndex::get() * 10 + passenger->startVerticeIndex::get();
-		Node^ passNode = gcnew Node(passIndexes);
+		Node^ passStartNode = passenger->startNode::get();
+		Node^ passEndNode = passenger->endNode::get();
+
+		int passStartIndexes = passStartNode->vertice;
+		int passEndIndexes = passEndNode->vertice;
 
 		bool a = false;
 		bool b = false;
@@ -354,11 +339,22 @@ public:
 			int currentNodeCrossroad = currentNode->vertice / 10;
 			int currentNodeVertice = currentNode->vertice % 10;
 
-			// условие выхода осуществляется, если мы взяли точку, которая соответствует началу линии, где находится пассажир
-			if (currentNode->vertice == passNode->vertice) {
-				_way = BuildPath(passNode);
+			// условие выхода осуществляется, если мы взяли точку, которая соответствует началу линии, где находится пассажир (в зависимости от направления вектора пассажира)
+			bool isPassLineReached = false;
+
+			if ((currentNode->vertice / 10) == (passStartIndexes / 10)) {
+				if (passEndNode->direction == "left") { isPassLineReached = (currentNode->vertice % 10) < 2; }
+				else if (passEndNode->direction == "right") { isPassLineReached = (currentNode->vertice % 10) > 1; }
+				else if (passEndNode->direction == "up") { isPassLineReached = (currentNode->vertice % 10) % 2 == 1; }
+				else if (passEndNode->direction == "down") { isPassLineReached = (currentNode->vertice % 10) % 2 == 0; }
+			}
+
+			if (isPassLineReached) {
+				_way = BuildPath(currentNode, passEndNode);
+				_way->Reverse();
 				for (int i = 0; i < _way->Count; i++) {
-					label->Text += Convert::ToString(_way[i]->vertice);
+					label11->Text += Convert::ToString(String::Format(" {0}", _way[i]->vertice));
+					label12->Text += Convert::ToString(String::Format(" {0}", _way[i]->direction));
 				}
 				break;
 			}
@@ -386,42 +382,35 @@ public:
 					// если совпала лишь одна координата и мы пока не прошли потенциально следующую точку
 					if (((a + b) % 2) && (explored->IndexOf(nextNode->vertice) == -1) && !IsContainsVertice(newReachable, nextNode) && (currentNodeCrossroad != i)) {
 						if (currentNodeVertice == 0) {
-							if (a && nextNodeCrossroad > currentNodeCrossroad)
+							if (a && nextNodeCrossroad > currentNodeCrossroad) {
+								nextNode->direction = "down";
 								newReachable->Add(nextNode);
-							else if (b && nextNodeCrossroad < currentNodeCrossroad)
+							}
+							else if (b && nextNodeCrossroad < currentNodeCrossroad) {
+								nextNode->direction = "left";
 								newReachable->Add(nextNode);
+							}
 						}
-						else if (currentNodeVertice == 1 && nextNodeCrossroad < currentNodeCrossroad)
+						else if (currentNodeVertice == 1 && nextNodeCrossroad < currentNodeCrossroad) {
+							if (a) { nextNode->direction = "up"; }
+							else if (b) { nextNode->direction = "left"; }
 							newReachable->Add(nextNode);
-						else if (currentNodeVertice == 2 && nextNodeCrossroad > currentNodeCrossroad)
+						}
+						else if (currentNodeVertice == 2 && nextNodeCrossroad > currentNodeCrossroad) {
+							if (a) { nextNode->direction = "down"; }
+							else if (b) { nextNode->direction = "right"; }
 							newReachable->Add(nextNode);
+						}
 						else if (currentNodeVertice == 3) {
-							if (a && nextNodeCrossroad < currentNodeCrossroad)
+							if (a && nextNodeCrossroad < currentNodeCrossroad) {
+								nextNode->direction = "up";
 								newReachable->Add(nextNode);
-							else if (b && nextNodeCrossroad > currentNodeCrossroad)
+							}
+							else if (b && nextNodeCrossroad > currentNodeCrossroad) {
+								nextNode->direction = "right";
 								newReachable->Add(nextNode);
+							}
 						}
-						/*if (a && (nextNodeCrossroad > currentNodeCrossroad)) { nextNode->direction == "down"; }
-						else if (a && (nextNodeCrossroad < currentNodeCrossroad)) { nextNode->direction == "up"; }
-						
-						else if (b && (nextNodeCrossroad > currentNodeCrossroad)) { nextNode->direction == "right"; }
-						else { nextNode->direction == "left"; }
-
-						
-						if (currentNode->direction == "") { newReachable->Add(nextNode); }
-						else if (currentNode->direction == "up" && nextNode->direction != "down") { newReachable->Add(nextNode); }
-						else if (currentNode->direction == "down" && nextNode->direction != "up") { newReachable->Add(nextNode); }
-						else if (currentNode->direction == "right" && nextNode->direction != "left") { newReachable->Add(nextNode); }
-						else if (currentNode->direction == "left" && nextNode->direction != "right") { newReachable->Add(nextNode); }*/
-
-						
-						
-
-						// 12 13 30 32 50 52 82 83
-						// -> 50 52 82 83
-
-
-
 					}
 				}
 			}
@@ -456,71 +445,6 @@ public:
 			}
 			newReachable = nullptr;
 		}
-
-
-
-
-
-
-		//// вносим в массив пути начальный перекрёсток пути, соответствующий 3ей точке при генерации, умноженный на 10 (вытащить можно с помощью деления нацело на 10),
-		//// а также вершину 3ей точки (вытащить можно с помощью деления по модулю 10 (% 10)).
-		//// то есть точка представляет из себя число (1-3значное), например 0ой перекрёсток 3ья вершина - 3, 1ый перекрёсток 2ая вершина - 12, 12ый перекрёсток 1ая вершина - 121.
-		//
-		//_way->Add((_npCrossroadIndex2 * 10) + _npVerticeIndex2);
-		//List<int>^ reachable = gcnew List<int>(2);
-
-		//bool a = false;
-		//bool b = false;
-
-		//// нужен метод (событие) подбирания пассажира (совпала одна из координат (вторая координата варьируется по области в зависимости от направления движения)
-		//// + едет по той же линии независимо от метода поиска пути)
-		//bool finalEqualsPasLineStart = _way[_way->Count - 1] == (passenger->startCrossroadIndex::get() * 10) + passenger->startVerticeIndex::get();
-		//bool finalEqualsPasLineEnd = _way[_way->Count - 1] == (passenger->endCrossroadIndex::get() * 10) + passenger->endCrossroadIndex::get();
-
-		//// если индекс начального перекрёстка меньше, чем индекс конечного
-		//if (_npCrossroadIndex2 < passenger->startCrossroadIndex::get()) {
-		//	while (!finalEqualsPasLineStart) {
-		//		// переназначение текущей точки
-		//		int currentCrossroad = _way[0] / 10;
-		//		int currentVertice = _way[0] % 10;
-		//		Point^ currentPoint = Vertices[currentCrossroad][currentVertice];
-
-		//		// verticeIndex = reachable[0] % 10; crossroadIndex = reachable[0] / 10
-		//		// verticeIndex = 0 тогда a: i > crossroadIndex, b: i < crossroadIndex
-		//		// verticeIndex = 1 тогда a или b: i < crossroadIndex
-		//		// verticeIndex = 2 тогда a или b: i > crossroadIndex
-		//		// verticeIndex = 3 тогда a: i < crossroadIndex, b: i > crosroadIndex
-
-		//		List<int>^ verticeCompatible = gcnew List<int>(2); // 33, 32, 22, 20
-		//		verticeCompatible->Add(33); verticeCompatible->Add(32); verticeCompatible->Add(22); verticeCompatible->Add(20);
-
-		//		// ГЕНЕРАЦИЯ МАССИВА ДОСТИГАЕМЫХ ТОЧЕК ОТ ТЕКУЩЕЙ (vertice)
-		//		// в цикле идём по всем перекрёсткам и их вершинам от большего индекса к меньшему
-		//		// 
-		//		//for (int i = VERTEX_QUANTITY - 1; i >= currentCrossroad; i--) {
-		//		//	int nextCrossroad = i;
-		//		//	for each (int vertices in verticeCompatible) {
-		//		//		if (currentVertice < 2) { nextVertice = (currentVertice % 2) + 2; }
-		//		//		int nextVertice = vertices % 10;
-		//		//	}
-		//		//	if () { break; }
-
-		//		//}
-
-
-		//		/*if () {
-		//			_way[wayLength] = Vertices[reachable[0] / 10][reachable[0] % 10];
-		//			label->Text += Convert::ToString(String::Format(" {0}{1}", reachable[0] / 10, reachable[0] % 10));
-		//			wayLength++;
-		//		}
-		//		else {
-		//			_way[wayLength] = Vertices[passenger->endCrossroadIndex][passenger->endVerticeIndex];
-		//			label->Text += Convert::ToString(_way[wayLength]);
-		//			wayLength++;
-		//			reachable->RemoveRange(0, reachable->Count);
-		//		}*/
-		//	}
-		//}
 	}
 
 	void MoveToPassenger() {

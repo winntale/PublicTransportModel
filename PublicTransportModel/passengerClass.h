@@ -5,18 +5,31 @@ using namespace System;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
+
+//public ref class Node {
+//public:
+//	int vertice;
+//	Node^ previous;
+//	String^ direction; // направление, куда двигались, чтобы попасть из previous в текущую ноду
+//
+//	Node(int _vertice) {
+//		vertice = _vertice;
+//		previous = nullptr;
+//		direction = "";
+//	}
+//	~Node() {}
+//};
+
+ref class Node;
+
 public ref class Passenger {
 private:
 	int _xPos;
 	int _yPos;
 
 	int _state; // 0 - выбор машины; 1 - ожидание машины; 2 - в пункте прибытия
-	Point^ _endPoint;
-	int _endCrossroadIndex;
-	int _endVerticeIndex;
-
-	int _startCrossroadIndex;
-	int _startVerticeIndex;
+	Node^ _endNode;
+	Node^ _startNode;
 
 public:
 	Passenger() {
@@ -41,29 +54,14 @@ public:
 		void set(int _value) { _state = _value; }
 	}
 
-	property Point^ endPoint {
-		Point^ get() { return _endPoint; }
-		void set(Point^ _value) { _endPoint = _value; }
+	property Node^ startNode {
+		Node^ get() { return _startNode; }
+		void set(Node^ _value) { _startNode = _value; }
 	}
 
-	property int endCrossroadIndex {
-		int get() { return _endCrossroadIndex; }
-		void set(int _value) { _endCrossroadIndex = _value; }
-	}
-
-	property int endVerticeIndex {
-		int get() { return _endVerticeIndex; }
-		void set(int _value) { _endVerticeIndex = _value; }
-	}
-
-	property int startCrossroadIndex {
-		int get() { return _startCrossroadIndex; }
-		void set(int _value) { _startCrossroadIndex = _value; }
-	}
-
-	property int startVerticeIndex {
-		int get() { return _startVerticeIndex; }
-		void set(int _value) { _startVerticeIndex = _value; }
+	property Node^ endNode {
+		Node^ get() { return _endNode; }
+		void set(Node^ _value) { _endNode = _value; }
 	}
 
 };
