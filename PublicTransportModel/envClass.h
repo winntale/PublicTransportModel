@@ -15,6 +15,8 @@ private:
 	List<TaxiCar^>^ _TaxiCars;
 	List<Passenger^>^ _Passengers;
 
+	float _localTimer;
+
 public:
 	MyEnvironment() {
 		_TaxiCars = gcnew List<TaxiCar^>(0);
@@ -270,12 +272,13 @@ public:
 		for (int i = 0; i < Passengers->Count; i++) {
 			int rndNumber = rndGen->Next(0, 101);
 			if (rndNumber >= 80 && Passengers[i]->state::get() == 0) {
-				TaxiCar^ serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)];
-				while (serviceCar->state::get() == 1 || serviceCar->state::get() == 2) { serviceCar = TaxiCars[rndGen->Next(0, TaxiCars->Count)]; }
+				int serviceCarIndex = rndGen->Next(0, TaxiCars->Count);
+				TaxiCar^ serviceCar = TaxiCars[serviceCarIndex];
+				while (serviceCar->state::get() == 1 || serviceCar->state::get() == 2) { serviceCarIndex = rndGen->Next(0, TaxiCars->Count); serviceCar = TaxiCars[serviceCarIndex]; }
 				serviceCar->state::set(1);
 				serviceCar->currentClient::set(Passengers[i]);
 				Passengers[i]->state::set(1);
-				Passengers[i]->serviceCar::set(serviceCar);
+				Passengers[i]->serviceCarIndex::set(serviceCarIndex);
 				serviceCar->WayFind(Passengers[i], Vertices, label11, label12);
 			}
 		}
@@ -284,6 +287,7 @@ public:
 
 
 	void TimerTickActions(Label^ label3, Label^ label4, Label^ label5, Label^ label6, Label^ label7, Label^ label8, Label^ label9, Label^ label10, Label^ label11, Label^ label12) {
+
 		for (int i = 0; i < TaxiCars->Count; i++) {
 			if (TaxiCars[i]->state::get() == 0) { TaxiCars[i]->Move(Vertices); }
 			else if (TaxiCars[i]->state::get() == 1) { TaxiCars[i]->MoveToPassenger(Vertices, TaxiCars[i]->currentClient::get()); }
@@ -292,13 +296,26 @@ public:
 				label5->Text = Convert::ToString(TaxiCars[i]->tripDuration::get());
 				TaxiCars[i]->Move(Vertices);
 			}
+			else if (TaxiCars[i]->state::get() == 4) {
+				_localTimer += 0.05;
+				if (_localTimer > 1) { TaxiCars[i]->state::set(2); _localTimer = 0; }
+			}
+			else if (TaxiCars[i]->state::get() == 5) {
+				_localTimer += 0.05;
+				if (_localTimer > 1) { TaxiCars[i]->state::set(0); _localTimer = 0; }
+			}
 		}
 		PassengerSpawn(label3, label4, label6, label7, label8, label9, label10);
 		TaxiChoise(label11, label12);
 
 		for (int i = 0; i < Passengers->Count; i++) {
-			if ((Passengers[i]->state == 3) && (Passengers[i]->moveActions::get() < 5)) { Passengers[i]->MoveAway(); }
-			else if ((Passengers[i]->state == 3) && (Passengers[i]->moveActions::get() >= 5)) { Passengers->Remove(Passengers[i]); }
+			if (Passengers[i]->state::get() == 2) {
+				if (TaxiCars[Passengers[i]->serviceCarIndex::get()]->tripDuration::get() > 10) {
+					TaxiCars[Passengers[i]->serviceCarIndex::get()]->DropOff(Passengers[i]);
+				}
+			}
+			else if ((Passengers[i]->state::get() == 3) && (Passengers[i]->moveActions::get() < 10)) { Passengers[i]->MoveAway(); }
+			else if ((Passengers[i]->state::get() == 3) && (Passengers[i]->moveActions::get() >= 10)) { Passengers->Remove(Passengers[i]); }
 		}
 	}
 	

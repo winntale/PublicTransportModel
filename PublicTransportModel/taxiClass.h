@@ -28,7 +28,7 @@ public:
 };
 
 public ref class TaxiCar {
-private:
+public:
 	int _xPos;
 	int _yPos;
 
@@ -57,7 +57,7 @@ private:
 public:
 
 	delegate void HandlerTakeOnPassenger(Passenger^ passenger, array<array<Point^>^>^ Vertices);
-	delegate void HandlerDropOffPassenger();
+	delegate void HandlerDropOffPassenger(Passenger^ passenger);
 
 	event HandlerTakeOnPassenger^ EventTakeOn;
 	event HandlerDropOffPassenger^ EventDropOff;
@@ -74,6 +74,7 @@ public:
 		_tripDuration = 0;
 
 		EventTakeOn += gcnew TaxiCar::HandlerTakeOnPassenger(this, &TaxiCar::onTakeOn);
+		EventDropOff += gcnew TaxiCar::HandlerDropOffPassenger(this, &TaxiCar::onDropOff);
 	}
 	~TaxiCar() {};
 
@@ -476,8 +477,7 @@ public:
 	}
 
 	void onTakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
-		Thread::Sleep(1000);
-		_state = 2;
+		_state = 4; // через секунду перейдёт в 2
 		passenger->state::set(2);
 
 		Random^ rndGen = gcnew Random();
@@ -600,11 +600,18 @@ public:
 	}
 
 	void onDropOff(Passenger^ passenger) {
-		if (tripDuration > 10) {
-			Thread::Sleep(1000);
-			_state = 0;
+		if (_tripDuration > 10) {
+			_state = 5; // в envClass через секунду перейдёт в 0
 			passenger->state::set(3);
+			passenger->serviceCarDirection::set(_direction);
+			passenger->serviceCarX::set(_xPos);
+			passenger->serviceCarY::set(_yPos);
+
+			_tripDuration = 0;
 		}
 	}
 
+	void DropOff(Passenger^ passenger) {
+		EventDropOff(passenger);
+	}
 };
