@@ -594,7 +594,7 @@ public:
 			}
 		}
 
-		if (_way->Count == 1) {
+		if (_way->Count == 1 || ((_npCrossroadIndex * 10 + _npVerticeIndex) == passenger->endNode->vertice)) {
 			IfTaxiIsHere(passenger, Vertices);
 		}
 	}

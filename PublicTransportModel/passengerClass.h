@@ -10,6 +10,8 @@ ref class TaxiCar;
 
 public ref class Passenger {
 private:
+	int _color; // 0 - чёрный; 1 - рыжий; 2 - русый
+
 	int _xPos;
 	int _yPos;
 	String^ _direction;
@@ -28,7 +30,10 @@ private:
 	Node^ _startNode;
 
 public:
+	Random^ rndGen = gcnew Random();
 	Passenger() {
+		_color = rndGen->Next(1, 4);
+
 		_xPos = 0;
 		_yPos = 0;
 		_direction = "";
@@ -39,6 +44,11 @@ public:
 		_state = 0; // 0 - выбор машины; 1 - ожидание машины; 2 - на пути в пункт прибытия; 3 - в пункте прибытия
 	}
 	~Passenger() {};
+
+	property int color {
+		int get() { return _color; }
+		void set(int _value) { _color = _value; }
+	}
 
 	property int xPos {
 		int get() { return _xPos; }
@@ -103,19 +113,19 @@ public:
 
 	void MoveAway() {
 		if (!_isMovingAway) {
-			if (_serviceCarDirection == "down") { _xPos = _serviceCarX - 30; _yPos = _serviceCarY; _direction = "left"; }
-			else if (_serviceCarDirection == "up") { _xPos = _serviceCarX + 30; _yPos = _serviceCarY; _direction = "right"; }
-			else if (_serviceCarDirection == "right") { _xPos = _serviceCarX; _yPos = _serviceCarY + 30; _direction = "down"; }
-			else if (_serviceCarDirection == "left") { _xPos = _serviceCarX; _yPos = _serviceCarY - 30; _direction = "up"; }
+			if (_serviceCarDirection == "down") { _xPos = _serviceCarX - 10; _yPos = _serviceCarY; _direction = "left"; }
+			else if (_serviceCarDirection == "up") { _xPos = _serviceCarX + 10; _yPos = _serviceCarY; _direction = "right"; }
+			else if (_serviceCarDirection == "right") { _xPos = _serviceCarX; _yPos = _serviceCarY + 10; _direction = "down"; }
+			else if (_serviceCarDirection == "left") { _xPos = _serviceCarX; _yPos = _serviceCarY - 10; _direction = "up"; }
 
 			_isMovingAway = true;
 		}
 
 		else if (_isMovingAway) {
-			if (_direction == "left") { _xPos -= 3; }
-			else if (_direction == "right") { _xPos += 3; }
-			else if (_direction == "down") { _yPos += 3; }
-			else if (_direction == "up") { _yPos -= 3; }
+			if (_direction == "left") { _xPos -= PASSENGER_SPEED; }
+			else if (_direction == "right") { _xPos += PASSENGER_SPEED; }
+			else if (_direction == "down") { _yPos += PASSENGER_SPEED; }
+			else if (_direction == "up") { _yPos -= PASSENGER_SPEED; }
 
 			_moveActions++;
 		}
