@@ -30,7 +30,7 @@ public:
 		previous = nullptr;
 		direction = _direction;
 	}
-	
+
 	~Node() {}
 };
 
@@ -477,6 +477,8 @@ public:
 		}
 	}
 
+
+	// метод для события перехода такси в состояние поездки (забрало пассажира)
 	void onTakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
 		_state = 3; // через секунду перейдёт в 2
 		passenger->state::set(2);
@@ -545,11 +547,13 @@ public:
 		_npVerticeIndex2 = verticeIndex3;
 	}
 
+	// триггер события
 	void TakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
 		EventTakeOn(passenger, Vertices);
 	}
 
-	void IfTaxiIsHere(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
+	// транспорт приехал за пассажиром(-ами)
+	void IfTransportIsHere(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
 		bool isTaxiHere = false;
 
 		if (passenger->endNode->direction == "up") { isTaxiHere = (((passenger->xPos::get() - _xPos) < 60) && (Math::Abs(_yPos - (passenger->yPos::get() - (TAXICAR_IMG_HEIGHT / 2))) < SPEED)); }
@@ -562,6 +566,7 @@ public:
 		}
 	}
 
+	// движение в 1-ом стейте
 	void MoveToPassenger(array<array<Point^>^>^ Vertices, Passenger^ passenger) {
 		_direction = _way[0]->direction;
 
@@ -575,7 +580,7 @@ public:
 
 		bool isTurned = false;
 
-			
+
 		if (_direction == "up" || _direction == "down") {
 			// машина достигла Y (двигалась по вертикали)
 			if ((Math::Abs(_yPos - (nextWayPoint->Y - (TAXICAR_IMG_HEIGHT / 2))) < SPEED) && !isTurned) {
@@ -596,10 +601,11 @@ public:
 		}
 
 		if (_way->Count == 1 || ((_npCrossroadIndex * 10 + _npVerticeIndex) == passenger->endNode->vertice)) {
-			IfTaxiIsHere(passenger, Vertices);
+			IfTransportIsHere(passenger, Vertices);
 		}
 	}
 
+	// событие такси доехало
 	void onDropOff(Passenger^ passenger) {
 		if (_tripDuration > (2000.0 / _maxVelocity)) {
 			_state = 4; // в envClass через секунду перейдёт в 0
@@ -612,6 +618,7 @@ public:
 		}
 	}
 
+	// триггер события такси доехало
 	void DropOff(Passenger^ passenger) {
 		EventDropOff(passenger);
 	}
@@ -621,24 +628,62 @@ public:
 
 public ref class Bus : public TaxiCar {
 private:
+	array<bool>^ wasIn;
 	array<Node^>^ nodeContainer;
+	int _stopAt;
+
+	List<Passenger^>^ _currentClient;
 
 public:
+	delegate void HandlerTakeOnPassenger(Passenger^ passenger);
+	delegate void HandlerDropOffPassenger(Passenger^ passenger);
+
+	event HandlerTakeOnPassenger^ EventTakeOn;
+	event HandlerDropOffPassenger^ EventDropOff;
+
 	Bus() {
 		_xPos = 151 - (BUS_WIDTH / 2);
 		_yPos = 151;
 		_direction = "down";
 
-		_maxVelocity = 150;
+		_state = 0;
 
+		_maxVelocity = 60;
+
+		_currentClient = gcnew List<Passenger^>(0);
+		wasIn = gcnew array<bool>(4) { false, false, false, false };
 		nodeContainer = gcnew array<Node^>(6) { gcnew Node(22, "down"), gcnew Node(123, "right"), gcnew Node(101, "up"), gcnew Node(81, "left"), gcnew Node(71, "up"), gcnew Node(0, "left") };
+
+		EventTakeOn += gcnew Bus::HandlerTakeOnPassenger(this, &Bus::onTakeOn);
+		EventDropOff += gcnew Bus::HandlerDropOffPassenger(this, &Bus::onDropOff);
 	}
 
-	void WayGenerator(Label^ label3) {
-		for each (Node ^ node in nodeContainer) { _way->Add(node); label3->Text += Convert::ToString(String::Format("{0} ", node->vertice)); }
+	property int stopAt {
+		int get() { return _stopAt; }
 	}
 
-	void Move(array<array<Point^>^>^ Vertices, Label^ label4, Label^ label5) {
+	property List<Passenger^>^ currentClient {
+		List<Passenger^>^ get() { return _currentClient; }
+		void set(List<Passenger^>^ _value) { _currentClient = _value; }
+	}
+
+	void WayGenerator() {
+		for each (Node ^ node in nodeContainer) { _way->Add(node); }
+	}
+
+	void IfTransportIsHere(array<Point^>^ busStops) {
+		bool isBusHere = false;
+
+		if (!wasIn[0] && (Math::Abs(_xPos - busStops[0]->X) < SPEED) && ((_yPos - busStops[0]->Y) < 50)) { isBusHere = true; wasIn[0] = true; _stopAt = 0; }
+		if (!wasIn[1] && (Math::Abs((_xPos - BUS_WIDTH / 2) - busStops[1]->X) < SPEED) && ((busStops[0]->Y - _yPos) < 50)) { isBusHere = true; _stopAt = 1; wasIn[1] = true; wasIn[0] = false; }
+		if (!wasIn[2] && (Math::Abs(_yPos - busStops[2]->Y) < SPEED) && ((busStops[0]->X - _xPos) < 80)) { isBusHere = true; wasIn[2] = true; _stopAt = 2; }
+		if (!wasIn[3] && (Math::Abs(_yPos - busStops[3]->Y) < SPEED) && ((busStops[0]->X - _xPos) < 80)) { isBusHere = true; wasIn[3] = true; _stopAt = 3; }
+
+		if (isBusHere) { _state = 3; }
+		if (wasIn[0]) { for (int i = 1; i < 4; i++) { wasIn[i] = false; } }
+	}
+
+	void Move(array<array<Point^>^>^ Vertices, array<Point^>^ busStops) {
 		if (_direction == "left") { _xPos -= SPEED; }
 		else if (_direction == "right") { _xPos += SPEED; }
 
@@ -648,6 +693,7 @@ public:
 		if (_direction == "left" || _direction == "right") {
 			if (Math::Abs(_xPos - (Vertices[_way[0]->vertice / 10][_way[0]->vertice % 10]->X - (BUS_HEIGHT / 2))) < SPEED) {
 				_xPos = Vertices[_way[0]->vertice / 10][_way[0]->vertice % 10]->X - (BUS_WIDTH / 2);
+				if (_direction == "right" || ((_direction == "left") && (_way[1]->direction == "up"))) { _yPos -= 32; }
 
 				Node^ passedNode = _way[0];
 				_way->Remove(_way[0]);
@@ -657,6 +703,7 @@ public:
 		else if (_direction == "up" || _direction == "down") {
 			if (Math::Abs(_yPos - (Vertices[_way[0]->vertice / 10][_way[0]->vertice % 10]->Y - (BUS_HEIGHT / 2))) < SPEED) {
 				_yPos = Vertices[_way[0]->vertice / 10][_way[0]->vertice % 10]->Y - (BUS_WIDTH / 2);
+				if (_direction == "up") { _xPos -= 32; }
 
 				Node^ passedNode = _way[0];
 				_way->Remove(_way[0]);
@@ -665,7 +712,31 @@ public:
 		}
 		_direction = _way[0]->direction;
 
-		label4->Text = Convert::ToString(_direction);
-		label5->Text = Convert::ToString(String::Format("{0}, {1}", _way[0]->vertice, _way[0]->direction));
+		IfTransportIsHere(busStops);
+	}
+
+	// метод для события перехода такси в состояние поездки (забрало пассажира)
+	void onTakeOn(Passenger^ passenger) {
+		passenger->state::set(2);
+		passenger->goalbusStopIndex::set((_stopAt + 2) % 4);
+		_currentClient->Add(passenger);
+	}
+
+	// триггер события
+	void TakeOn(Passenger^ passenger) {
+		EventTakeOn(passenger);
+	}
+
+	void onDropOff(Passenger^ passenger) {
+		Random^ rndGen = gcnew Random();
+		passenger->state::set(3);
+		passenger->serviceCarDirection::set(_direction);
+		passenger->serviceCarX::set(_xPos);
+		passenger->serviceCarY::set(_yPos);
+		currentClient->Remove(passenger);
+	}
+
+	void DropOff(Passenger^ passenger) {
+		EventDropOff(passenger);
 	}
 };

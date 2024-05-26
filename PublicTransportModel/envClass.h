@@ -16,24 +16,29 @@ private:
 	Bus^ _Bus;
 	List<TaxiCar^>^ _TaxiCars;
 	List<Passenger^>^ _Passengers;
-	List<Passenger^>^ _BusPassengers;
+	List<List<Passenger^>^>^ _BusPassengers;
 
 	float _localTimer;
+	float _localTimer2;
+	float _localTimer3;
 
 public:
 	MyEnvironment() {
 		_Bus = gcnew Bus();
 		_TaxiCars = gcnew List<TaxiCar^>(0);
 		_Passengers = gcnew List<Passenger^>(0);
-		_BusPassengers = gcnew List<Passenger^>(0);
-		cordinates = gcnew array<Point^>(VERTEX_QUANTITY) { Point(151, 75), Point(151, 326), Point(151, 828),
-			Point(402, 75), Point(402, 326), Point(402, 577), Point(402, 828), Point(653, 75), Point(653, 326), Point(653, 577), Point(904, 326), Point(904, 577), Point(904, 828) };
+		_BusPassengers = gcnew List<List<Passenger^>^>(4);
+		for (int i = 0; i < 4; i++) { _BusPassengers->Add(gcnew List<Passenger^>()); }
+		cordinates = gcnew array<Point^>(VERTEX_QUANTITY) {
+			Point(151, 75), Point(151, 326), Point(151, 828),
+				Point(402, 75), Point(402, 326), Point(402, 577), Point(402, 828), Point(653, 75), Point(653, 326), Point(653, 577), Point(904, 326), Point(904, 577), Point(904, 828)
+		};
 		Vertices = gcnew array<array<Point^>^>(VERTEX_QUANTITY);
-		
+
 		busStops = gcnew array<Point^>(BUSSTOPS_COUNT) { Point(227, 35), Point(541, 867), Point(692, 159), Point(945, 399) }; // первые 2 расположены на горизонтали, последние 2 - на вертикали
 	}
 	~MyEnvironment() {};
-	
+
 	property Bus^ pBus {
 		Bus^ get() { return _Bus; }
 	}
@@ -46,8 +51,8 @@ public:
 		List<Passenger^>^ get() { return _Passengers; }
 	}
 
-	property List<Passenger^>^ BusPassengers {
-		List<Passenger^>^ get() { return _BusPassengers; }
+	property List<List<Passenger^>^>^ BusPassengers {
+		List<List<Passenger^>^>^ get() { return _BusPassengers; }
 	}
 
 	// метод генерации массива вершин по массиву координат
@@ -87,7 +92,7 @@ public:
 
 			// !((a + b) % 2) - цикл мен€ет координаты точки до тех пор, пока не произойдЄт “ќЋ№ ќ одно из 2х событий (либо a, либо b)
 			// || (crossroadIndex1 == crossroadIndex2) - условие нужно дл€ того, чтобы избежать ситуации вз€ти€ двух точек одного перекрЄстка
- 			while (!((a + b) % 2) || (crossroadIndex1 == crossroadIndex2)) {
+			while (!((a + b) % 2) || (crossroadIndex1 == crossroadIndex2)) {
 				crossroadIndex2 = rndGen->Next(0, VERTEX_QUANTITY);
 
 				// цикл определ€ет, есть ли путь до 2-го перекрЄстка
@@ -197,9 +202,14 @@ public:
 	void PassengerSpawn() {
 		Random^ rndGen = gcnew Random();
 		int randomNumber = rndGen->Next(0, 1001);
-		
+
+		int numOfPassengers = 0;
+		for each (List<Passenger^> ^ passengerList in BusPassengers) {
+			numOfPassengers += passengerList->Count;
+		}
+
 		// создание пассажира такси
-		if (TaxiCars->Count && (Passengers->Count < TaxiCars->Count) && (randomNumber > 100)) { // 994
+		if (TaxiCars->Count && (Passengers->Count < TaxiCars->Count) && (randomNumber > 950)) {
 			Passengers->Add(gcnew Passenger(0)); // создание объекта с 0-ым состо€нием
 
 			int crossroadIndex1 = rndGen->Next(0, VERTEX_QUANTITY);
@@ -272,22 +282,22 @@ public:
 			Passengers[Passengers->Count - 1]->endNode::set(passEndNode);
 		}
 		// создание пассажира автобуса
-		else if ((BusPassengers->Count < 20) && (randomNumber > 980)) {
-			BusPassengers->Add(gcnew Passenger(4)); // создание объекта с 4-ым состо€нием
-
+		else if ((numOfPassengers < 20) && (randomNumber > 950)) {
 			int BusStopIndex = rndGen->Next(0, BUSSTOPS_COUNT);
-			if (BusStopIndex < 2) {
-				if (BusStopIndex == 0) { BusPassengers[BusPassengers->Count - 1]->direction::set("left"); }
-				else { BusPassengers[BusPassengers->Count - 1]->direction::set("right"); }
+			BusPassengers[BusStopIndex]->Add(gcnew Passenger(4));
 
-				BusPassengers[BusPassengers->Count - 1]->xPos::set(busStops[BusStopIndex]->X + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_WIDTH - PASSENGER_HEIGHT / 2));
-				BusPassengers[BusPassengers->Count - 1]->yPos::set(busStops[BusStopIndex]->Y + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_HEIGHT - PASSENGER_HEIGHT / 2));
+			if (BusStopIndex < 2) {
+				if (BusStopIndex == 0) { BusPassengers[BusStopIndex]->ToArray()[BusPassengers[BusStopIndex]->Count - 1]->direction::set("left"); }
+				else { BusPassengers[BusStopIndex]->ToArray()[BusPassengers[BusStopIndex]->Count - 1]->direction::set("right"); }
+
+				BusPassengers[BusStopIndex]->ToArray()[BusPassengers[BusStopIndex]->Count - 1]->xPos::set(busStops[BusStopIndex]->X + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_WIDTH - PASSENGER_HEIGHT / 2));
+				BusPassengers[BusStopIndex]->ToArray()[BusPassengers[BusStopIndex]->Count - 1]->yPos::set(busStops[BusStopIndex]->Y + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_HEIGHT - PASSENGER_HEIGHT / 2));
 			}
 			else if (BusStopIndex >= 2) {
-				BusPassengers[BusPassengers->Count - 1]->direction::set("up");
+				BusPassengers[BusStopIndex]->ToArray()[BusPassengers[BusStopIndex]->Count - 1]->direction::set("up");
 
-				BusPassengers[BusPassengers->Count - 1]->xPos::set(busStops[BusStopIndex]->X + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_HEIGHT - PASSENGER_HEIGHT / 2));
-				BusPassengers[BusPassengers->Count - 1]->yPos::set(busStops[BusStopIndex]->Y + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_WIDTH - PASSENGER_HEIGHT / 2));
+				BusPassengers[BusStopIndex]->ToArray()[BusPassengers[BusStopIndex]->Count - 1]->xPos::set(busStops[BusStopIndex]->X + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_HEIGHT - PASSENGER_HEIGHT / 2));
+				BusPassengers[BusStopIndex]->ToArray()[BusPassengers[BusStopIndex]->Count - 1]->yPos::set(busStops[BusStopIndex]->Y + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_WIDTH - PASSENGER_HEIGHT / 2));
 			}
 		}
 	}
@@ -314,10 +324,55 @@ public:
 
 
 
-	void TimerTickActions(Label^ label4, Label^ label5) {
+	void TimerTickActions() {
+		// услуги сервиса (по€вление пассажира в системе + выбор им одной из свободных машин такси)
+		PassengerSpawn();
+		TaxiChoise();
 
-		_Bus->Move(Vertices, label4, label5);
+		// действи€ дл€ автобуса
+		if (_Bus->state::get() == 0) {
+			_Bus->Move(Vertices, busStops);
+		}
+		else if (_Bus->state::get() == 3) {
+			_localTimer += 0.05;
+			if (_localTimer > 2) { _Bus->state::set(0); _localTimer = 0; }
+		}
 
+		List<Passenger^>^ waitingPassengers = gcnew List<Passenger^>(0);
+
+		for each (Passenger ^ passenger in BusPassengers[_Bus->stopAt::get()]) { if (passenger->state::get() == 4) { waitingPassengers->Add(passenger); } }
+
+		// действи€ дл€ пассажиров автобуса
+		// посадка
+		for (int i = 0; i < waitingPassengers->Count; i++) {
+			if (_Bus->state::get() == 3) {
+				_localTimer2 += 0.5;
+				if (_localTimer2 > 2) {
+					_Bus->TakeOn(waitingPassengers->ToArray()[i]);
+					_localTimer2 = 0;
+				}
+			}
+		}
+		// высадка
+		for each (Passenger ^ tripingPassenger in _Bus->currentClient::get()->ToArray()) {
+			if ((_Bus->state::get() == 3) && (tripingPassenger->goalbusStopIndex::get() == _Bus->stopAt::get())) {
+				_localTimer3 += 0.5;
+				if (_localTimer3 > 5) {
+					Random^ rndGen = gcnew Random();
+					_Bus->DropOff(tripingPassenger);
+					_localTimer3 = 0;
+				}
+			}
+		}
+
+		for (int i = 0; i < BusPassengers->Count; i++) {
+			for (int j = 0; j < BusPassengers[i]->Count; j++) {
+				if ((BusPassengers[i]->ToArray()[j]->state::get() == 3) && BusPassengers[i]->ToArray()[j]->moveActions::get() < 10) { BusPassengers[i]->ToArray()[j]->MoveAway(); }
+				else if ((BusPassengers[i]->ToArray()[j]->state::get() == 3) && BusPassengers[i]->ToArray()[j]->moveActions::get() >= 10) { BusPassengers[i]->Remove(BusPassengers[i]->ToArray()[j]); }
+			}
+		}
+
+		// действи€ дл€ такси
 		for (int i = 0; i < TaxiCars->Count; i++) {
 			if (TaxiCars[i]->state::get() == 0) { TaxiCars[i]->Move(Vertices); }
 			else if (TaxiCars[i]->state::get() == 1) { TaxiCars[i]->MoveToPassenger(Vertices, TaxiCars[i]->currentClient::get()); }
@@ -334,9 +389,8 @@ public:
 				if (_localTimer > 1) { TaxiCars[i]->state::set(0); _localTimer = 0; }
 			}
 		}
-		PassengerSpawn();
-		TaxiChoise();
 
+		// действи€ дл€ пассажиров
 		for (int i = 0; i < Passengers->Count; i++) {
 			if (Passengers[i]->state::get() == 2) {
 				if (TaxiCars[Passengers[i]->serviceCarIndex::get()]->tripDuration::get() > 10) {
@@ -347,5 +401,4 @@ public:
 			else if ((Passengers[i]->state::get() == 3) && (Passengers[i]->moveActions::get() >= 10)) { Passengers->Remove(Passengers[i]); }
 		}
 	}
-	
 };

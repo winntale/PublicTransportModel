@@ -127,7 +127,6 @@
   <ItemGroup>
     <ClInclude Include="envClass.h" />
     <ClInclude Include="Defines.h" />
-    <ClInclude Include="Funcs.h" />
     <ClInclude Include="ModelForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>

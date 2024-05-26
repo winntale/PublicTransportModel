@@ -15,14 +15,19 @@ namespace PublicTransportModel {
 	/// </summary>
 	public ref class ModelForm : public System::Windows::Forms::Form
 	{
-		   Graphics^ graf;
-		   Bitmap^ myBitmap;
+		Graphics^ graf;
+		Bitmap^ myBitmap;
 	private: MyEnvironment^ env;
 	private: System::Windows::Forms::Timer^ timeAction;
 	private: System::Windows::Forms::Timer^ timerStopSpamming;
-	private: System::Windows::Forms::Label^ label3;
-	private: System::Windows::Forms::Label^ label4;
-	private: System::Windows::Forms::Label^ label5;
+
+
+
+
+
+
+
+
 
 
 
@@ -95,9 +100,6 @@ namespace PublicTransportModel {
 			this->buttonExit = (gcnew System::Windows::Forms::Button());
 			this->timeAction = (gcnew System::Windows::Forms::Timer(this->components));
 			this->timerStopSpamming = (gcnew System::Windows::Forms::Timer(this->components));
-			this->label3 = (gcnew System::Windows::Forms::Label());
-			this->label4 = (gcnew System::Windows::Forms::Label());
-			this->label5 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -188,42 +190,12 @@ namespace PublicTransportModel {
 			this->timerStopSpamming->Interval = 500;
 			this->timerStopSpamming->Tick += gcnew System::EventHandler(this, &ModelForm::timerStopSpamming_Tick);
 			// 
-			// label3
-			// 
-			this->label3->AutoSize = true;
-			this->label3->Location = System::Drawing::Point(1190, 394);
-			this->label3->Name = L"label3";
-			this->label3->Size = System::Drawing::Size(82, 31);
-			this->label3->TabIndex = 12;
-			this->label3->Text = L"label3";
-			// 
-			// label4
-			// 
-			this->label4->AutoSize = true;
-			this->label4->Location = System::Drawing::Point(1179, 469);
-			this->label4->Name = L"label4";
-			this->label4->Size = System::Drawing::Size(82, 31);
-			this->label4->TabIndex = 13;
-			this->label4->Text = L"label4";
-			// 
-			// label5
-			// 
-			this->label5->AutoSize = true;
-			this->label5->Location = System::Drawing::Point(1179, 509);
-			this->label5->Name = L"label5";
-			this->label5->Size = System::Drawing::Size(82, 31);
-			this->label5->TabIndex = 14;
-			this->label5->Text = L"label5";
-			// 
 			// ModelForm
 			// 
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::None;
 			this->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(70)), static_cast<System::Int32>(static_cast<System::Byte>(73)),
 				static_cast<System::Int32>(static_cast<System::Byte>(79)));
 			this->ClientSize = System::Drawing::Size(1584, 927);
-			this->Controls->Add(this->label5);
-			this->Controls->Add(this->label4);
-			this->Controls->Add(this->label3);
 			this->Controls->Add(this->buttonExit);
 			this->Controls->Add(this->colorValue);
 			this->Controls->Add(this->label2);
@@ -248,7 +220,7 @@ namespace PublicTransportModel {
 #pragma endregion
 	private: System::Void ModelForm_Load(System::Object^ sender, System::EventArgs^ e) {
 		env->VerticesGen();
-		env->pBus->WayGenerator(label3);
+		env->pBus->WayGenerator();
 		timerStopSpamming->Interval = ANTISPAM_INTERVAL;
 	}
 		   // функция, возвращающая наименование цвета на английском. используется для обращения к опр. картинки машины такси (taxiCarYellow и т.д.)
@@ -270,7 +242,7 @@ namespace PublicTransportModel {
 			   if (env->pBus->direction::get() == "right") { busImg->RotateFlip(RotateFlipType::Rotate90FlipNone); _graf->DrawImage(busImg, env->pBus->xPos::get(), env->pBus->yPos::get(), BUS_HEIGHT, BUS_WIDTH); }
 			   if (env->pBus->direction::get() == "down") { busImg->RotateFlip(RotateFlipType::Rotate180FlipNone); _graf->DrawImage(busImg, env->pBus->xPos::get(), env->pBus->yPos::get(), BUS_WIDTH, BUS_HEIGHT); }
 			   if (env->pBus->direction::get() == "up") { _graf->DrawImage(busImg, env->pBus->xPos::get(), env->pBus->yPos::get(), BUS_WIDTH, BUS_HEIGHT); }
-			   
+
 			   delete busImg;
 		   }
 
@@ -303,15 +275,17 @@ namespace PublicTransportModel {
 			   }
 
 			   for (int i = 0; i < env->BusPassengers->Count; i++) {
-				   if (env->BusPassengers->Count) {
-					   Bitmap^ passengerImg = gcnew Bitmap(String::Format("..\\forPTM\\passenger{0}.png", env->BusPassengers[i]->color::get()));
+				   for (int j = 0; j < env->BusPassengers[i]->Count; j++) {
+					   if (env->BusPassengers[i]->ToArray()[j]->state::get() != 2) {
+						   Bitmap^ passengerImg = gcnew Bitmap(String::Format("..\\forPTM\\passenger{0}.png", env->BusPassengers[i]->ToArray()[j]->color::get()));
 
-					   if (env->BusPassengers[i]->direction == "left") { passengerImg->RotateFlip(RotateFlipType::Rotate270FlipNone); }
-					   if (env->BusPassengers[i]->direction == "right") { passengerImg->RotateFlip(RotateFlipType::Rotate90FlipNone); }
-					   if (env->BusPassengers[i]->direction == "down") { passengerImg->RotateFlip(RotateFlipType::Rotate180FlipNone); }
+						   if (env->BusPassengers[i]->ToArray()[j]->direction == "left") { passengerImg->RotateFlip(RotateFlipType::Rotate270FlipNone); }
+						   if (env->BusPassengers[i]->ToArray()[j]->direction == "right") { passengerImg->RotateFlip(RotateFlipType::Rotate90FlipNone); }
+						   if (env->BusPassengers[i]->ToArray()[j]->direction == "down") { passengerImg->RotateFlip(RotateFlipType::Rotate180FlipNone); }
 
-					   _graf->DrawImage(passengerImg, env->BusPassengers[i]->xPos::get(), env->BusPassengers[i]->yPos::get(), PASSENGER_HEIGHT, PASSENGER_HEIGHT);
-					   delete passengerImg;
+						   _graf->DrawImage(passengerImg, env->BusPassengers[i]->ToArray()[j]->xPos::get(), env->BusPassengers[i]->ToArray()[j]->yPos::get(), PASSENGER_HEIGHT, PASSENGER_HEIGHT);
+						   delete passengerImg;
+					   }
 				   }
 			   }
 		   }
@@ -340,7 +314,7 @@ namespace PublicTransportModel {
 			env->TaxiCars[env->TaxiCars->Count - 1]->color::set(GetColor(colorValue->SelectedIndex)); // отдаём созданному объекту значение поля цвет, выбранное в комбобоксе на форме
 			env->TaxiCars[env->TaxiCars->Count - 1]->maxVelocity::set(Convert::ToInt16(maxVelocityValue->Text)); // то же самое для поля максимальная скорость
 		}
-		else if (!(colorValue->SelectedIndex + 1)) { 
+		else if (!(colorValue->SelectedIndex + 1)) {
 			MessageBox::Show("Укажите цвет машины такси", "Ошибка", MessageBoxButtons::OK, MessageBoxIcon::Error);
 		}
 		else {
@@ -349,7 +323,7 @@ namespace PublicTransportModel {
 
 		// то есть перед отрисовкой машины такси имеем 4 заполненных поля
 		// 1) координаты 2) направление 3) цвет 4) макс. скорость
-		
+
 		ScreenUpdater();
 	}
 	private: System::Void buttonExit_Click(System::Object^ sender, System::EventArgs^ e) {
@@ -357,13 +331,13 @@ namespace PublicTransportModel {
 	}
 	private: System::Void timeAction_Tick(System::Object^ sender, System::EventArgs^ e) {
 		ScreenUpdater();
-		env->TimerTickActions(label4 ,label5);
+		env->TimerTickActions();
 	}
-private: System::Void timerStopSpamming_Tick(System::Object^ sender, System::EventArgs^ e) {
-	timerStopSpamming->Enabled = false;
-	buttonTaxiSpawn->Enabled = true;
-	buttonTaxiSpawn->ForeColor = Color::Silver;
-	buttonTaxiSpawn->Cursor = Cursors::Hand;
-}
-};
+	private: System::Void timerStopSpamming_Tick(System::Object^ sender, System::EventArgs^ e) {
+		timerStopSpamming->Enabled = false;
+		buttonTaxiSpawn->Enabled = true;
+		buttonTaxiSpawn->ForeColor = Color::Silver;
+		buttonTaxiSpawn->Cursor = Cursors::Hand;
+	}
+	};
 }

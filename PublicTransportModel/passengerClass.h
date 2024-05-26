@@ -6,7 +6,6 @@ using namespace System::Drawing;
 using namespace System::Windows::Forms;
 
 ref class Node;
-ref class TaxiCar;
 
 public ref class Passenger {
 private:
@@ -19,8 +18,10 @@ private:
 	bool _isMovingAway;
 	int _moveActions;
 
+	int _goalBusStopIndex;
+
 	int _state; // состояния для такси: 0 - выбор машины; 1 - ожидание машины; 2 - на пути в пункт прибытия; 3 - в пункте прибытия
-				// для автобуса: 4 - ожидание автобуса; ..
+	// для автобуса: 4 - ожидание автобуса; ..
 	int _serviceCarIndex;
 	String^ _serviceCarDirection;
 	int _serviceCarX;
@@ -108,6 +109,11 @@ public:
 	property int serviceCarY {
 		int get() { return _serviceCarY; }
 		void set(int _value) { _serviceCarY = _value; }
+	}
+
+	property int goalbusStopIndex {
+		int get() { return _goalBusStopIndex; }
+		void set(int _value) { _goalBusStopIndex = _value; }
 	}
 
 

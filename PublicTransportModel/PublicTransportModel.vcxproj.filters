@@ -32,9 +32,6 @@
     <ClInclude Include="envClass.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Funcs.h">
-      <Filter>Файлы заголовков</Filter>
-    </ClInclude>
     <ClInclude Include="Defines.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
