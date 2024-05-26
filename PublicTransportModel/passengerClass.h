@@ -19,8 +19,8 @@ private:
 	bool _isMovingAway;
 	int _moveActions;
 
-	int _state;
-
+	int _state; // состояния для такси: 0 - выбор машины; 1 - ожидание машины; 2 - на пути в пункт прибытия; 3 - в пункте прибытия
+				// для автобуса: 4 - ожидание автобуса; ..
 	int _serviceCarIndex;
 	String^ _serviceCarDirection;
 	int _serviceCarX;
@@ -31,17 +31,17 @@ private:
 
 public:
 	Random^ rndGen = gcnew Random();
-	Passenger() {
+	Passenger(int _stateVal) {
 		_color = rndGen->Next(1, 4);
 
 		_xPos = 0;
 		_yPos = 0;
 		_direction = "";
-		
+
 		_isMovingAway = false;
 		_moveActions = 0;
 
-		_state = 0; // 0 - выбор машины; 1 - ожидание машины; 2 - на пути в пункт прибытия; 3 - в пункте прибытия
+		_state = _stateVal;
 	}
 	~Passenger() {};
 

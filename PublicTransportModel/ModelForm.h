@@ -20,6 +20,9 @@ namespace PublicTransportModel {
 	private: MyEnvironment^ env;
 	private: System::Windows::Forms::Timer^ timeAction;
 	private: System::Windows::Forms::Timer^ timerStopSpamming;
+	private: System::Windows::Forms::Label^ label3;
+	private: System::Windows::Forms::Label^ label4;
+	private: System::Windows::Forms::Label^ label5;
 
 
 
@@ -28,8 +31,8 @@ namespace PublicTransportModel {
 
 
 
-	private: System::Windows::Forms::Label^ label11;
-	private: System::Windows::Forms::Label^ label12;
+
+
 		   Bitmap^ background;
 
 	public:
@@ -92,8 +95,9 @@ namespace PublicTransportModel {
 			this->buttonExit = (gcnew System::Windows::Forms::Button());
 			this->timeAction = (gcnew System::Windows::Forms::Timer(this->components));
 			this->timerStopSpamming = (gcnew System::Windows::Forms::Timer(this->components));
-			this->label11 = (gcnew System::Windows::Forms::Label());
-			this->label12 = (gcnew System::Windows::Forms::Label());
+			this->label3 = (gcnew System::Windows::Forms::Label());
+			this->label4 = (gcnew System::Windows::Forms::Label());
+			this->label5 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -184,25 +188,32 @@ namespace PublicTransportModel {
 			this->timerStopSpamming->Interval = 500;
 			this->timerStopSpamming->Tick += gcnew System::EventHandler(this, &ModelForm::timerStopSpamming_Tick);
 			// 
-			// label11
+			// label3
 			// 
-			this->label11->AutoSize = true;
-			this->label11->Font = (gcnew System::Drawing::Font(L"Microsoft YaHei", 13));
-			this->label11->Location = System::Drawing::Point(1180, 745);
-			this->label11->Name = L"label11";
-			this->label11->Size = System::Drawing::Size(44, 24);
-			this->label11->TabIndex = 20;
-			this->label11->Text = L"way";
+			this->label3->AutoSize = true;
+			this->label3->Location = System::Drawing::Point(1190, 394);
+			this->label3->Name = L"label3";
+			this->label3->Size = System::Drawing::Size(82, 31);
+			this->label3->TabIndex = 12;
+			this->label3->Text = L"label3";
 			// 
-			// label12
+			// label4
 			// 
-			this->label12->AutoSize = true;
-			this->label12->Font = (gcnew System::Drawing::Font(L"Microsoft YaHei", 13));
-			this->label12->Location = System::Drawing::Point(1180, 779);
-			this->label12->Name = L"label12";
-			this->label12->Size = System::Drawing::Size(42, 24);
-			this->label12->TabIndex = 21;
-			this->label12->Text = L"dirs";
+			this->label4->AutoSize = true;
+			this->label4->Location = System::Drawing::Point(1179, 469);
+			this->label4->Name = L"label4";
+			this->label4->Size = System::Drawing::Size(82, 31);
+			this->label4->TabIndex = 13;
+			this->label4->Text = L"label4";
+			// 
+			// label5
+			// 
+			this->label5->AutoSize = true;
+			this->label5->Location = System::Drawing::Point(1179, 509);
+			this->label5->Name = L"label5";
+			this->label5->Size = System::Drawing::Size(82, 31);
+			this->label5->TabIndex = 14;
+			this->label5->Text = L"label5";
 			// 
 			// ModelForm
 			// 
@@ -210,8 +221,9 @@ namespace PublicTransportModel {
 			this->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(70)), static_cast<System::Int32>(static_cast<System::Byte>(73)),
 				static_cast<System::Int32>(static_cast<System::Byte>(79)));
 			this->ClientSize = System::Drawing::Size(1584, 927);
-			this->Controls->Add(this->label12);
-			this->Controls->Add(this->label11);
+			this->Controls->Add(this->label5);
+			this->Controls->Add(this->label4);
+			this->Controls->Add(this->label3);
 			this->Controls->Add(this->buttonExit);
 			this->Controls->Add(this->colorValue);
 			this->Controls->Add(this->label2);
@@ -236,6 +248,7 @@ namespace PublicTransportModel {
 #pragma endregion
 	private: System::Void ModelForm_Load(System::Object^ sender, System::EventArgs^ e) {
 		env->VerticesGen();
+		env->pBus->WayGenerator(label3);
 		timerStopSpamming->Interval = ANTISPAM_INTERVAL;
 	}
 		   // функция, возвращающая наименование цвета на английском. используется для обращения к опр. картинки машины такси (taxiCarYellow и т.д.)
@@ -250,7 +263,17 @@ namespace PublicTransportModel {
 			   }
 		   }
 
-		   
+		   Void DrawBus(Graphics^ _graf) {
+			   Bitmap^ busImg = gcnew Bitmap("..\\forPTM\\bus.png");
+
+			   if (env->pBus->direction::get() == "left") { busImg->RotateFlip(RotateFlipType::Rotate270FlipNone); _graf->DrawImage(busImg, env->pBus->xPos::get(), env->pBus->yPos::get(), BUS_HEIGHT, BUS_WIDTH); }
+			   if (env->pBus->direction::get() == "right") { busImg->RotateFlip(RotateFlipType::Rotate90FlipNone); _graf->DrawImage(busImg, env->pBus->xPos::get(), env->pBus->yPos::get(), BUS_HEIGHT, BUS_WIDTH); }
+			   if (env->pBus->direction::get() == "down") { busImg->RotateFlip(RotateFlipType::Rotate180FlipNone); _graf->DrawImage(busImg, env->pBus->xPos::get(), env->pBus->yPos::get(), BUS_WIDTH, BUS_HEIGHT); }
+			   if (env->pBus->direction::get() == "up") { _graf->DrawImage(busImg, env->pBus->xPos::get(), env->pBus->yPos::get(), BUS_WIDTH, BUS_HEIGHT); }
+			   
+			   delete busImg;
+		   }
+
 		   Void DrawTaxiCars(Graphics^ _graf) {
 			   for (int i = 0; i < env->TaxiCars->Count; i++) {
 				   Bitmap^ taxiImg = gcnew Bitmap(String::Format("..\\forPTM\\taxiCar{0}.png", env->TaxiCars[i]->color::get()));
@@ -278,11 +301,25 @@ namespace PublicTransportModel {
 					   delete passengerImg;
 				   }
 			   }
+
+			   for (int i = 0; i < env->BusPassengers->Count; i++) {
+				   if (env->BusPassengers->Count) {
+					   Bitmap^ passengerImg = gcnew Bitmap(String::Format("..\\forPTM\\passenger{0}.png", env->BusPassengers[i]->color::get()));
+
+					   if (env->BusPassengers[i]->direction == "left") { passengerImg->RotateFlip(RotateFlipType::Rotate270FlipNone); }
+					   if (env->BusPassengers[i]->direction == "right") { passengerImg->RotateFlip(RotateFlipType::Rotate90FlipNone); }
+					   if (env->BusPassengers[i]->direction == "down") { passengerImg->RotateFlip(RotateFlipType::Rotate180FlipNone); }
+
+					   _graf->DrawImage(passengerImg, env->BusPassengers[i]->xPos::get(), env->BusPassengers[i]->yPos::get(), PASSENGER_HEIGHT, PASSENGER_HEIGHT);
+					   delete passengerImg;
+				   }
+			   }
 		   }
 
 		   Void ScreenUpdater() {
 			   graf = graf->FromImage(myBitmap);
 			   graf->Clear(Color::White);
+			   DrawBus(graf);
 			   DrawTaxiCars(graf);
 			   DrawPassengers(graf);
 			   myBitmap->MakeTransparent(Color::White);
@@ -320,7 +357,7 @@ namespace PublicTransportModel {
 	}
 	private: System::Void timeAction_Tick(System::Object^ sender, System::EventArgs^ e) {
 		ScreenUpdater();
-		env->TimerTickActions(label11, label12);
+		env->TimerTickActions(label4 ,label5);
 	}
 private: System::Void timerStopSpamming_Tick(System::Object^ sender, System::EventArgs^ e) {
 	timerStopSpamming->Enabled = false;

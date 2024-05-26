@@ -11,22 +11,32 @@ using namespace System::Collections::Generic;
 public ref class MyEnvironment {
 private:
 	array<Point^>^ cordinates;
+	array<Point^>^ busStops;
 	array<array<Point^>^>^ Vertices;
+	Bus^ _Bus;
 	List<TaxiCar^>^ _TaxiCars;
 	List<Passenger^>^ _Passengers;
+	List<Passenger^>^ _BusPassengers;
 
 	float _localTimer;
 
 public:
 	MyEnvironment() {
+		_Bus = gcnew Bus();
 		_TaxiCars = gcnew List<TaxiCar^>(0);
 		_Passengers = gcnew List<Passenger^>(0);
-		cordinates = gcnew array<Point^>(VERTEX_QUANTITY) { Point(151, 39 + 36), Point(151, 290 + 36), Point(151, 792 + 36),
-			Point(402, 39 + 36), Point(402, 290 + 36), Point(402, 541 + 36), Point(402, 792 + 36), Point(653, 39 + 36), Point(653, 290 + 36), Point(653, 541 + 36), Point(904, 290 + 36), Point(904, 541 + 36), Point(904, 792 + 36) };
+		_BusPassengers = gcnew List<Passenger^>(0);
+		cordinates = gcnew array<Point^>(VERTEX_QUANTITY) { Point(151, 75), Point(151, 326), Point(151, 828),
+			Point(402, 75), Point(402, 326), Point(402, 577), Point(402, 828), Point(653, 75), Point(653, 326), Point(653, 577), Point(904, 326), Point(904, 577), Point(904, 828) };
 		Vertices = gcnew array<array<Point^>^>(VERTEX_QUANTITY);
-
+		
+		busStops = gcnew array<Point^>(BUSSTOPS_COUNT) { Point(227, 35), Point(541, 867), Point(692, 159), Point(945, 399) }; // первые 2 расположены на горизонтали, последние 2 - на вертикали
 	}
 	~MyEnvironment() {};
+	
+	property Bus^ pBus {
+		Bus^ get() { return _Bus; }
+	}
 
 	property List<TaxiCar^>^ TaxiCars {
 		List<TaxiCar^>^ get() { return _TaxiCars; }
@@ -34,6 +44,10 @@ public:
 
 	property List<Passenger^>^ Passengers {
 		List<Passenger^>^ get() { return _Passengers; }
+	}
+
+	property List<Passenger^>^ BusPassengers {
+		List<Passenger^>^ get() { return _BusPassengers; }
 	}
 
 	// метод генерации массива вершин по массиву координат
@@ -183,9 +197,10 @@ public:
 	void PassengerSpawn() {
 		Random^ rndGen = gcnew Random();
 		int randomNumber = rndGen->Next(0, 1001);
-
+		
+		// создание пассажира такси
 		if (TaxiCars->Count && (Passengers->Count < TaxiCars->Count) && (randomNumber > 100)) { // 994
-			Passengers->Add(gcnew Passenger());
+			Passengers->Add(gcnew Passenger(0)); // создание объекта с 0-ым состоянием
 
 			int crossroadIndex1 = rndGen->Next(0, VERTEX_QUANTITY);
 			int crossroadIndex2 = 0;
@@ -256,9 +271,28 @@ public:
 
 			Passengers[Passengers->Count - 1]->endNode::set(passEndNode);
 		}
+		// создание пассажира автобуса
+		else if ((BusPassengers->Count < 20) && (randomNumber > 980)) {
+			BusPassengers->Add(gcnew Passenger(4)); // создание объекта с 4-ым состоянием
+
+			int BusStopIndex = rndGen->Next(0, BUSSTOPS_COUNT);
+			if (BusStopIndex < 2) {
+				if (BusStopIndex == 0) { BusPassengers[BusPassengers->Count - 1]->direction::set("left"); }
+				else { BusPassengers[BusPassengers->Count - 1]->direction::set("right"); }
+
+				BusPassengers[BusPassengers->Count - 1]->xPos::set(busStops[BusStopIndex]->X + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_WIDTH - PASSENGER_HEIGHT / 2));
+				BusPassengers[BusPassengers->Count - 1]->yPos::set(busStops[BusStopIndex]->Y + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_HEIGHT - PASSENGER_HEIGHT / 2));
+			}
+			else if (BusStopIndex >= 2) {
+				BusPassengers[BusPassengers->Count - 1]->direction::set("up");
+
+				BusPassengers[BusPassengers->Count - 1]->xPos::set(busStops[BusStopIndex]->X + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_HEIGHT - PASSENGER_HEIGHT / 2));
+				BusPassengers[BusPassengers->Count - 1]->yPos::set(busStops[BusStopIndex]->Y + rndGen->Next(PASSENGER_HEIGHT / 2, BUSSTOP_WIDTH - PASSENGER_HEIGHT / 2));
+			}
+		}
 	}
 
-	void TaxiChoise(Label^ label11, Label^ label12) {
+	void TaxiChoise() {
 		Random^ rndGen = gcnew Random();
 		for (int i = 0; i < Passengers->Count; i++) {
 			int rndNumber = rndGen->Next(0, 101);
@@ -266,18 +300,23 @@ public:
 				int serviceCarIndex = rndGen->Next(0, TaxiCars->Count);
 				TaxiCar^ serviceCar = TaxiCars[serviceCarIndex];
 				while (serviceCar->state::get() == 1 || serviceCar->state::get() == 2) { serviceCarIndex = rndGen->Next(0, TaxiCars->Count); serviceCar = TaxiCars[serviceCarIndex]; }
+
 				serviceCar->state::set(1);
 				serviceCar->currentClient::set(Passengers[i]);
+
 				Passengers[i]->state::set(1);
 				Passengers[i]->serviceCarIndex::set(serviceCarIndex);
-				serviceCar->WayFind(Passengers[i], Vertices, label11, label12);
+
+				serviceCar->WayFind(Passengers[i], Vertices);
 			}
 		}
 	}
 
 
 
-	void TimerTickActions(Label^ label11, Label^ label12) {
+	void TimerTickActions(Label^ label4, Label^ label5) {
+
+		_Bus->Move(Vertices, label4, label5);
 
 		for (int i = 0; i < TaxiCars->Count; i++) {
 			if (TaxiCars[i]->state::get() == 0) { TaxiCars[i]->Move(Vertices); }
@@ -286,17 +325,17 @@ public:
 				TaxiCars[i]->tripDuration::set(TaxiCars[i]->tripDuration::get() + 0.05);
 				TaxiCars[i]->Move(Vertices);
 			}
-			else if (TaxiCars[i]->state::get() == 4) {
+			else if (TaxiCars[i]->state::get() == 3) {
 				_localTimer += 0.05;
 				if (_localTimer > 1) { TaxiCars[i]->state::set(2); _localTimer = 0; }
 			}
-			else if (TaxiCars[i]->state::get() == 5) {
+			else if (TaxiCars[i]->state::get() == 4) {
 				_localTimer += 0.05;
 				if (_localTimer > 1) { TaxiCars[i]->state::set(0); _localTimer = 0; }
 			}
 		}
 		PassengerSpawn();
-		TaxiChoise(label11, label12);
+		TaxiChoise();
 
 		for (int i = 0; i < Passengers->Count; i++) {
 			if (Passengers[i]->state::get() == 2) {

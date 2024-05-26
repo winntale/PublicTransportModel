@@ -24,11 +24,18 @@ public:
 		previous = nullptr;
 		direction = "";
 	}
+
+	Node(int _vertice, String^ _direction) {
+		vertice = _vertice;
+		previous = nullptr;
+		direction = _direction;
+	}
+	
 	~Node() {}
 };
 
 public ref class TaxiCar {
-public:
+protected:
 	int _xPos;
 	int _yPos;
 
@@ -37,7 +44,7 @@ public:
 	System::String^ _color;
 	int _fuelWaste;
 	int _currentFuel;
-	int _state; // 0 - ожидание; 1 - выполнение заказа; 2 - низкий уровень топлива
+	int _state; // 0 - ожидание; 1 - в пути к пассажиру; 2 - перевозка пассажира; 3, 4  - ожидание пассажира на вход и выход из машины
 
 	// поля для 2-ой точки
 	Point^ _nextPoint;
@@ -55,7 +62,6 @@ public:
 	float _tripDuration; // в секундах
 
 public:
-
 	delegate void HandlerTakeOnPassenger(Passenger^ passenger, array<array<Point^>^>^ Vertices);
 	delegate void HandlerDropOffPassenger(Passenger^ passenger);
 
@@ -68,7 +74,7 @@ public:
 
 		_fuelWaste = 1;
 		_currentFuel = 100;
-		_state = 0;
+		_state = 0; // 0 - хаотичное движение по дорогам; 1 - в пути до пассажира; 2 - перевозка пассажира;
 
 		_way = gcnew List<Node^>(0);
 		_tripDuration = 0;
@@ -335,8 +341,7 @@ public:
 	}
 
 	// метод поиска пути (заполнения ссылок previous для reachable точек)
-	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices, Label^ label11, Label^ label12) {
-		label11->Text = "way";
+	void WayFind(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
 		Random^ rndGen = gcnew Random();
 
 		// создаём массив нод, которые сейчас можно рассмотреть и массив точек, в которых мы уже были
@@ -381,10 +386,6 @@ public:
 			if (isPassLineReached) {
 				_way = BuildPath(currentNode, passEndNode);
 				_way->Reverse();
-				for (int i = 0; i < _way->Count; i++) {
-					label11->Text += Convert::ToString(String::Format(" {0}", _way[i]->vertice));
-					label12->Text += Convert::ToString(String::Format(" {0}", _way[i]->direction));
-				}
 				break;
 			}
 
@@ -477,7 +478,7 @@ public:
 	}
 
 	void onTakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
-		_state = 4; // через секунду перейдёт в 2
+		_state = 3; // через секунду перейдёт в 2
 		passenger->state::set(2);
 
 		Random^ rndGen = gcnew Random();
@@ -600,8 +601,8 @@ public:
 	}
 
 	void onDropOff(Passenger^ passenger) {
-		if (_tripDuration > 10) {
-			_state = 5; // в envClass через секунду перейдёт в 0
+		if (_tripDuration > (2000.0 / _maxVelocity)) {
+			_state = 4; // в envClass через секунду перейдёт в 0
 			passenger->state::set(3);
 			passenger->serviceCarDirection::set(_direction);
 			passenger->serviceCarX::set(_xPos);
@@ -613,5 +614,58 @@ public:
 
 	void DropOff(Passenger^ passenger) {
 		EventDropOff(passenger);
+	}
+};
+
+
+
+public ref class Bus : public TaxiCar {
+private:
+	array<Node^>^ nodeContainer;
+
+public:
+	Bus() {
+		_xPos = 151 - (BUS_WIDTH / 2);
+		_yPos = 151;
+		_direction = "down";
+
+		_maxVelocity = 150;
+
+		nodeContainer = gcnew array<Node^>(6) { gcnew Node(22, "down"), gcnew Node(123, "right"), gcnew Node(101, "up"), gcnew Node(81, "left"), gcnew Node(71, "up"), gcnew Node(0, "left") };
+	}
+
+	void WayGenerator(Label^ label3) {
+		for each (Node ^ node in nodeContainer) { _way->Add(node); label3->Text += Convert::ToString(String::Format("{0} ", node->vertice)); }
+	}
+
+	void Move(array<array<Point^>^>^ Vertices, Label^ label4, Label^ label5) {
+		if (_direction == "left") { _xPos -= SPEED; }
+		else if (_direction == "right") { _xPos += SPEED; }
+
+		else if (_direction == "down") { _yPos += SPEED; }
+		else if (_direction == "up") { _yPos -= SPEED; }
+
+		if (_direction == "left" || _direction == "right") {
+			if (Math::Abs(_xPos - (Vertices[_way[0]->vertice / 10][_way[0]->vertice % 10]->X - (BUS_HEIGHT / 2))) < SPEED) {
+				_xPos = Vertices[_way[0]->vertice / 10][_way[0]->vertice % 10]->X - (BUS_WIDTH / 2);
+
+				Node^ passedNode = _way[0];
+				_way->Remove(_way[0]);
+				_way->Add(passedNode);
+			}
+		}
+		else if (_direction == "up" || _direction == "down") {
+			if (Math::Abs(_yPos - (Vertices[_way[0]->vertice / 10][_way[0]->vertice % 10]->Y - (BUS_HEIGHT / 2))) < SPEED) {
+				_yPos = Vertices[_way[0]->vertice / 10][_way[0]->vertice % 10]->Y - (BUS_WIDTH / 2);
+
+				Node^ passedNode = _way[0];
+				_way->Remove(_way[0]);
+				_way->Add(passedNode);
+			}
+		}
+		_direction = _way[0]->direction;
+
+		label4->Text = Convert::ToString(_direction);
+		label5->Text = Convert::ToString(String::Format("{0}, {1}", _way[0]->vertice, _way[0]->direction));
 	}
 };
