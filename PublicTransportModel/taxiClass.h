@@ -164,7 +164,7 @@ public:
 		void set(float _value) { _tripDuration = _value; }
 	}
 	
-	String^ XPointReached(array<array<Point^>^>^ Vertices, bool &isTurned, String^ _direction2) {
+	String^ XPointReached(array<array<Point^>^>^ Vertices, bool isTurned, String^ _direction2) {
 		Random^ rndGen = gcnew Random();
 
 		_xPos = _nextPoint->X - (TAXICAR_IMG_HEIGHT / 2); // корректировка X
@@ -210,7 +210,7 @@ public:
 		return _direction2;
 	}
 
-	String^ YPointReached(array<array<Point^>^>^ Vertices, bool &isTurned, String^ _direction2) {
+	String^ YPointReached(array<array<Point^>^>^ Vertices, bool isTurned, String^ _direction2) {
 		Random^ rndGen = gcnew Random();
 
 		_yPos = _nextPoint->Y - (TAXICAR_IMG_HEIGHT / 2); // корректировка Y
@@ -475,7 +475,6 @@ public:
 		}
 	}
 
-
 	// метод для события перехода такси в состояние поездки (забрало пассажира)
 	void onTakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
 		_state = 3; // через секунду перейдёт в 2
@@ -539,7 +538,6 @@ public:
 		_nextPoint = Vertices[crossroadIndex2][verticeIndex2];
 		_npCrossroadIndex = crossroadIndex2;
 		_npVerticeIndex = verticeIndex2;
-
 		_nextPoint2 = Vertices[crossroadIndex3][verticeIndex3];
 		_npCrossroadIndex2 = crossroadIndex3;
 		_npVerticeIndex2 = verticeIndex3;
@@ -624,6 +622,11 @@ public:
 
 
 
+
+
+
+
+
 public ref class Bus : public TaxiCar {
 private:
 	array<bool>^ wasIn;
@@ -639,6 +642,9 @@ public:
 	event HandlerTakeOnPassenger^ EventTakeOn;
 	event HandlerDropOffPassenger^ EventDropOff;
 
+	delegate void HandlerStop(int _stopAt);
+	static event HandlerStop^ EventStop;
+
 	Bus() {
 		_xPos = 151 - (BUS_WIDTH / 2);
 		_yPos = 151;
@@ -646,7 +652,7 @@ public:
 
 		_state = 0;
 
-		_maxVelocity = 60;
+		_maxVelocity = BUS_SPEED;
 
 		_currentClient = gcnew List<Passenger^>(0);
 		wasIn = gcnew array<bool>(4) { false, false, false, false };
@@ -677,9 +683,17 @@ public:
 		if (!wasIn[2] && (Math::Abs(_yPos - busStops[2]->Y) < SPEED) && ((busStops[0]->X - _xPos) < 80)) { isBusHere = true; wasIn[2] = true; _stopAt = 2; }
 		if (!wasIn[3] && (Math::Abs(_yPos - busStops[3]->Y) < SPEED) && ((busStops[0]->X - _xPos) < 80)) { isBusHere = true; wasIn[3] = true; _stopAt = 3; }
 
-		if (isBusHere) { _state = 3; }
+		if (isBusHere) { 
+			_state = 3; 
+			EventStop(_stopAt); //вызов события
+		}
 		if (wasIn[0]) { for (int i = 1; i < 4; i++) { wasIn[i] = false; } }
 	}
+
+	// в  классе автобуса есть событие EventStop (класс автобус - это издатель события EventStop)
+	// в классе пассажира осуществляется подписка на EventStop
+	// как происходит реагирование пассажира:
+	// 
 
 	void Move(array<array<Point^>^>^ Vertices, array<Point^>^ busStops) {
 		if (_direction == "left") { _xPos -= SPEED; }

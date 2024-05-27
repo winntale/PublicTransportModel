@@ -116,6 +116,7 @@ public:
 		void set(int _value) { _goalBusStopIndex = _value; }
 	}
 
+	
 
 	void MoveAway() {
 		if (!_isMovingAway) {
