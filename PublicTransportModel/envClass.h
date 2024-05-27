@@ -68,6 +68,33 @@ public:
 		}
 	}
 
+	// ОПРЕДЕЛЕНИЕ НАПРАВЛЕНИЯ
+	void DirectionSet(Point^ spawnPoint, Point^ nextPoint, int crossroadIndex1, int crossroadIndex2) {
+		Random^ rndGen = gcnew Random();
+
+		if (Math::Abs(spawnPoint->Y - nextPoint->Y) < 0.1) {
+			// устанавливаем значения координат объекту через соответствующие свойства
+			TaxiCars[TaxiCars->Count - 1]->xPos::set(rndGen->Next(Math::Min(spawnPoint->X, nextPoint->X), Math::Max(spawnPoint->X, nextPoint->X)) - (TAXICAR_IMG_HEIGHT / 2));
+			TaxiCars[TaxiCars->Count - 1]->yPos::set(spawnPoint->Y - (TAXICAR_IMG_HEIGHT / 2));
+			// если verticeIndex > 1, то машина находится в нижней части перекрёстка, соответственно её направление - вправо
+			if (crossroadIndex2 > crossroadIndex1) { // verticeIndex > 1) {
+				TaxiCars[TaxiCars->Count - 1]->direction::set("right");
+			}
+			else {
+				TaxiCars[TaxiCars->Count - 1]->direction::set("left");
+			}
+		}
+		else { // если совпал X
+			TaxiCars[TaxiCars->Count - 1]->xPos::set(spawnPoint->X - (TAXICAR_IMG_HEIGHT / 2));
+			TaxiCars[TaxiCars->Count - 1]->yPos::set(rndGen->Next(Math::Min(spawnPoint->Y, nextPoint->Y), Math::Max(spawnPoint->Y, nextPoint->Y)) - (TAXICAR_IMG_HEIGHT / 2));
+			// если verticeIndex % 2 равен 0, то машина находится в левой части перекрёстка, а значит её направление - вниз
+			if (crossroadIndex2 < crossroadIndex1) { // verticeIndex % 2 == 0) {
+				TaxiCars[TaxiCars->Count - 1]->direction::set("up");
+			}
+			else { TaxiCars[TaxiCars->Count - 1]->direction::set("down"); }
+		}
+	}
+
 	// метод генерации объекта машины такси (завершён)
 	void TaxiSpawn() {
 		Random^ rndGen = gcnew Random();
@@ -170,29 +197,8 @@ public:
 			TaxiCars[TaxiCars->Count - 1]->npCrossroadIndex2::set(crossroadIndex3);
 			TaxiCars[TaxiCars->Count - 1]->npVerticeIndex2::set(verticeIndex3);
 
-			// ОПРЕДЕЛЕНИЕ НАПРАВЛЕНИЯ
-
-			if (Math::Abs(spawnPoint->Y - nextPoint->Y) < 0.1) {
-				// устанавливаем значения координат объекту через соответствующие свойства
-				TaxiCars[TaxiCars->Count - 1]->xPos::set(rndGen->Next(Math::Min(spawnPoint->X, nextPoint->X), Math::Max(spawnPoint->X, nextPoint->X)) - (TAXICAR_IMG_HEIGHT / 2));
-				TaxiCars[TaxiCars->Count - 1]->yPos::set(spawnPoint->Y - (TAXICAR_IMG_HEIGHT / 2));
-				// если verticeIndex > 1, то машина находится в нижней части перекрёстка, соответственно её направление - вправо
-				if (crossroadIndex2 > crossroadIndex1) { // verticeIndex > 1) {
-					TaxiCars[TaxiCars->Count - 1]->direction::set("right");
-				}
-				else {
-					TaxiCars[TaxiCars->Count - 1]->direction::set("left");
-				}
-			}
-			else { // если совпал X
-				TaxiCars[TaxiCars->Count - 1]->xPos::set(spawnPoint->X - (TAXICAR_IMG_HEIGHT / 2));
-				TaxiCars[TaxiCars->Count - 1]->yPos::set(rndGen->Next(Math::Min(spawnPoint->Y, nextPoint->Y), Math::Max(spawnPoint->Y, nextPoint->Y)) - (TAXICAR_IMG_HEIGHT / 2));
-				// если verticeIndex % 2 равен 0, то машина находится в левой части перекрёстка, а значит её направление - вниз
-				if (crossroadIndex2 < crossroadIndex1) { // verticeIndex % 2 == 0) {
-					TaxiCars[TaxiCars->Count - 1]->direction::set("up");
-				}
-				else { TaxiCars[TaxiCars->Count - 1]->direction::set("down"); }
-			}
+			DirectionSet(spawnPoint, nextPoint, crossroadIndex1, crossroadIndex2);
+			
 		}
 		// в результате приведённый код создаёт объект машины такси и генерирует ему значения следующих полей
 		// 1) координаты (x; y)
@@ -280,6 +286,7 @@ public:
 			}
 
 			Passengers[Passengers->Count - 1]->endNode::set(passEndNode);
+			
 		}
 		// создание пассажира автобуса
 		else if ((numOfPassengers < 20) && (randomNumber > 950)) {
@@ -322,14 +329,8 @@ public:
 		}
 	}
 
-
-
-	void TimerTickActions() {
-		// услуги сервиса (появление пассажира в системе + выбор им одной из свободных машин такси)
-		PassengerSpawn();
-		TaxiChoise();
-
-		// действия для автобуса
+	// действия для автобуса
+	void BusActions() {
 		if (_Bus->state::get() == 0) {
 			_Bus->Move(Vertices, busStops);
 		}
@@ -337,42 +338,10 @@ public:
 			_localTimer += 0.05;
 			if (_localTimer > 2) { _Bus->state::set(0); _localTimer = 0; }
 		}
+	}
 
-		List<Passenger^>^ waitingPassengers = gcnew List<Passenger^>(0);
-
-		for each (Passenger ^ passenger in BusPassengers[_Bus->stopAt::get()]) { if (passenger->state::get() == 4) { waitingPassengers->Add(passenger); } }
-
-		// действия для пассажиров автобуса
-		// посадка
-		for (int i = 0; i < waitingPassengers->Count; i++) {
-			if (_Bus->state::get() == 3) {
-				_localTimer2 += 0.5;
-				if (_localTimer2 > 2) {
-					_Bus->TakeOn(waitingPassengers->ToArray()[i]);
-					_localTimer2 = 0;
-				}
-			}
-		}
-		// высадка
-		for each (Passenger ^ tripingPassenger in _Bus->currentClient::get()->ToArray()) {
-			if ((_Bus->state::get() == 3) && (tripingPassenger->goalbusStopIndex::get() == _Bus->stopAt::get())) {
-				_localTimer3 += 0.5;
-				if (_localTimer3 > 5) {
-					Random^ rndGen = gcnew Random();
-					_Bus->DropOff(tripingPassenger);
-					_localTimer3 = 0;
-				}
-			}
-		}
-
-		for (int i = 0; i < BusPassengers->Count; i++) {
-			for (int j = 0; j < BusPassengers[i]->Count; j++) {
-				if ((BusPassengers[i]->ToArray()[j]->state::get() == 3) && BusPassengers[i]->ToArray()[j]->moveActions::get() < 10) { BusPassengers[i]->ToArray()[j]->MoveAway(); }
-				else if ((BusPassengers[i]->ToArray()[j]->state::get() == 3) && BusPassengers[i]->ToArray()[j]->moveActions::get() >= 10) { BusPassengers[i]->Remove(BusPassengers[i]->ToArray()[j]); }
-			}
-		}
-
-		// действия для такси
+	// действия для такси
+	void TaxiActions() {
 		for (int i = 0; i < TaxiCars->Count; i++) {
 			if (TaxiCars[i]->state::get() == 0) { TaxiCars[i]->Move(Vertices); }
 			else if (TaxiCars[i]->state::get() == 1) { TaxiCars[i]->MoveToPassenger(Vertices, TaxiCars[i]->currentClient::get()); }
@@ -389,8 +358,46 @@ public:
 				if (_localTimer > 1) { TaxiCars[i]->state::set(0); _localTimer = 0; }
 			}
 		}
+	}
 
-		// действия для пассажиров
+	// действия для пассажиров автобуса
+	// посадка
+	void BusPassengersTakeOn(List<Passenger^>^ waitingPassengers) {
+		for (int i = 0; i < waitingPassengers->Count; i++) {
+			if (_Bus->state::get() == 3) {
+				_localTimer2 += 0.5;
+				if (_localTimer2 > 2) {
+					_Bus->TakeOn(waitingPassengers->ToArray()[i]);
+					_localTimer2 = 0;
+				}
+			}
+		}
+	}
+	// высадка
+	void BusPassengersDropOff() {
+		for each (Passenger ^ tripingPassenger in _Bus->currentClient::get()->ToArray()) {
+			if ((_Bus->state::get() == 3) && (tripingPassenger->goalbusStopIndex::get() == _Bus->stopAt::get())) {
+				_localTimer3 += 0.5;
+				if (_localTimer3 > 5) {
+					Random^ rndGen = gcnew Random();
+					_Bus->DropOff(tripingPassenger);
+					_localTimer3 = 0;
+				}
+			}
+		}
+	}
+	// движение по прибытии
+	void BusPassengersMove() {
+		for (int i = 0; i < BusPassengers->Count; i++) {
+			for (int j = 0; j < BusPassengers[i]->Count; j++) {
+				if ((BusPassengers[i]->ToArray()[j]->state::get() == 3) && BusPassengers[i]->ToArray()[j]->moveActions::get() < 10) { BusPassengers[i]->ToArray()[j]->MoveAway(); }
+				else if ((BusPassengers[i]->ToArray()[j]->state::get() == 3) && BusPassengers[i]->ToArray()[j]->moveActions::get() >= 10) { BusPassengers[i]->Remove(BusPassengers[i]->ToArray()[j]); }
+			}
+		}
+	}
+
+	// действия пассажиров
+	void PassengersAction() {
 		for (int i = 0; i < Passengers->Count; i++) {
 			if (Passengers[i]->state::get() == 2) {
 				if (TaxiCars[Passengers[i]->serviceCarIndex::get()]->tripDuration::get() > 10) {
@@ -399,6 +406,27 @@ public:
 			}
 			else if ((Passengers[i]->state::get() == 3) && (Passengers[i]->moveActions::get() < 10)) { Passengers[i]->MoveAway(); }
 			else if ((Passengers[i]->state::get() == 3) && (Passengers[i]->moveActions::get() >= 10)) { Passengers->Remove(Passengers[i]); }
-		}
+		} 
+	}
+
+	void TimerTickActions() {
+		// услуги сервиса (появление пассажира в системе + выбор им одной из свободных машин такси)
+		PassengerSpawn();
+		TaxiChoise();
+
+		BusActions();
+
+		// массив пассажиров в 4 состоянии (ждут автобуса)
+		List<Passenger^>^ waitingPassengers = gcnew List<Passenger^>(0);
+		for each (Passenger ^ passenger in BusPassengers[_Bus->stopAt::get()]) { if (passenger->state::get() == 4) { waitingPassengers->Add(passenger); } }
+
+		BusPassengersTakeOn(waitingPassengers);
+		BusPassengersDropOff();
+		BusPassengersMove();
+
+		TaxiActions();
+
+		PassengersAction();
+		
 	}
 };

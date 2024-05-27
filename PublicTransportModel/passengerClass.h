@@ -20,15 +20,15 @@ private:
 
 	int _goalBusStopIndex;
 
-	int _state; // состояния для такси: 0 - выбор машины; 1 - ожидание машины; 2 - на пути в пункт прибытия; 3 - в пункте прибытия
-	// для автобуса: 4 - ожидание автобуса; ..
+	int _state; // состояния для такси: 0 - выбор машины; 1 - ожидание машины; 2 - в пути; 3 - в пункте прибытия
+	// для автобуса: 4 - ожидание автобуса;
 	int _serviceCarIndex;
 	String^ _serviceCarDirection;
 	int _serviceCarX;
 	int _serviceCarY;
 
-	Node^ _endNode;
 	Node^ _startNode;
+	Node^ _endNode;
 
 public:
 	Random^ rndGen = gcnew Random();
@@ -126,8 +126,7 @@ public:
 
 			_isMovingAway = true;
 		}
-
-		else if (_isMovingAway) {
+		else {
 			if (_direction == "left") { _xPos -= PASSENGER_SPEED; }
 			else if (_direction == "right") { _xPos += PASSENGER_SPEED; }
 			else if (_direction == "down") { _yPos += PASSENGER_SPEED; }
