@@ -216,7 +216,7 @@ public:
 
 		// создание пассажира такси
 		if (TaxiCars->Count && (Passengers->Count < TaxiCars->Count) && (randomNumber > 950)) {
-			Passengers->Add(gcnew Passenger(0)); // создание объекта с 0-ым состоянием
+			Passengers->Add(gcnew Passenger()); // создание объекта с 0-ым состоянием
 
 			int crossroadIndex1 = rndGen->Next(0, VERTEX_QUANTITY);
 			int crossroadIndex2 = 0;
@@ -291,7 +291,7 @@ public:
 		// создание пассажира автобуса
 		else if ((numOfPassengers < 20) && (randomNumber > 950)) {
 			int BusStopIndex = rndGen->Next(0, BUSSTOPS_COUNT);
-			BusPassengers[BusStopIndex]->Add(gcnew Passenger(4));
+			BusPassengers[BusStopIndex]->Add(gcnew Passenger(4, BusStopIndex));
 
 			if (BusStopIndex < 2) {
 				if (BusStopIndex == 0) { BusPassengers[BusStopIndex]->ToArray()[BusPassengers[BusStopIndex]->Count - 1]->direction::set("left"); }
@@ -362,30 +362,30 @@ public:
 
 	// действия для пассажиров автобуса
 	// посадка
-	void BusPassengersTakeOn(List<Passenger^>^ waitingPassengers) {
-		for (int i = 0; i < waitingPassengers->Count; i++) {
-			if (_Bus->state::get() == 3) {
-				_localTimer2 += 0.5;
-				if (_localTimer2 > 2) {
-					_Bus->TakeOn(waitingPassengers->ToArray()[i]);
-					_localTimer2 = 0;
-				}
-			}
-		}
-	}
-	// высадка
-	void BusPassengersDropOff() {
-		for each (Passenger ^ tripingPassenger in _Bus->currentClient::get()->ToArray()) {
-			if ((_Bus->state::get() == 3) && (tripingPassenger->goalbusStopIndex::get() == _Bus->stopAt::get())) {
-				_localTimer3 += 0.5;
-				if (_localTimer3 > 5) {
-					Random^ rndGen = gcnew Random();
-					_Bus->DropOff(tripingPassenger);
-					_localTimer3 = 0;
-				}
-			}
-		}
-	}
+	//void BusPassengersTakeOn(List<Passenger^>^ waitingPassengers) {
+	//	for (int i = 0; i < waitingPassengers->Count; i++) {
+	//		if (_Bus->state::get() == 3) {
+	//			_localTimer2 += 0.5;
+	//			if (_localTimer2 > 2) {
+	//				_Bus->TakeOn(waitingPassengers->ToArray()[i]);
+	//				_localTimer2 = 0;
+	//			}
+	//		}
+	//	}
+	//}
+	//// высадка
+	//void BusPassengersDropOff() {
+	//	for each (Passenger ^ tripingPassenger in _Bus->currentClient::get()->ToArray()) {
+	//		if ((_Bus->state::get() == 3) && (tripingPassenger->goalbusStopIndex::get() == _Bus->stopAt::get())) {
+	//			_localTimer3 += 0.5;
+	//			if (_localTimer3 > 5) {
+	//				Random^ rndGen = gcnew Random();
+	//				_Bus->DropOff(tripingPassenger);
+	//				_localTimer3 = 0;
+	//			}
+	//		}
+	//	}
+	//}
 	// движение по прибытии
 	void BusPassengersMove() {
 		for (int i = 0; i < BusPassengers->Count; i++) {
@@ -420,8 +420,8 @@ public:
 		List<Passenger^>^ waitingPassengers = gcnew List<Passenger^>(0);
 		for each (Passenger ^ passenger in BusPassengers[_Bus->stopAt::get()]) { if (passenger->state::get() == 4) { waitingPassengers->Add(passenger); } }
 
-		BusPassengersTakeOn(waitingPassengers);
-		BusPassengersDropOff();
+		//BusPassengersTakeOn(waitingPassengers);
+		//BusPassengersDropOff();
 		BusPassengersMove();
 
 		TaxiActions();

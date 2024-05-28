@@ -60,11 +60,11 @@ protected:
 	float _tripDuration; // в секундах
 
 public:
-	delegate void HandlerTakeOnPassenger(Passenger^ passenger, array<array<Point^>^>^ Vertices);
+	/*delegate void HandlerTakeOnPassenger(Passenger^ passenger, array<array<Point^>^>^ Vertices);
 	delegate void HandlerDropOffPassenger(Passenger^ passenger);
 
 	event HandlerTakeOnPassenger^ EventTakeOn;
-	event HandlerDropOffPassenger^ EventDropOff;
+	event HandlerDropOffPassenger^ EventDropOff;*/
 
 	TaxiCar() {
 		_xPos = 0;
@@ -75,8 +75,8 @@ public:
 		_way = gcnew List<Node^>(0);
 		_tripDuration = 0;
 
-		EventTakeOn += gcnew TaxiCar::HandlerTakeOnPassenger(this, &TaxiCar::onTakeOn);
-		EventDropOff += gcnew TaxiCar::HandlerDropOffPassenger(this, &TaxiCar::onDropOff);
+		//EventTakeOn += gcnew TaxiCar::HandlerTakeOnPassenger(this, &TaxiCar::onTakeOn);
+		//EventDropOff += gcnew TaxiCar::HandlerDropOffPassenger(this, &TaxiCar::onDropOff);
 	}
 	~TaxiCar() {};
 
@@ -476,7 +476,7 @@ public:
 	}
 
 	// метод дл€ событи€ перехода такси в состо€ние поездки (забрало пассажира)
-	void onTakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
+	void onTakeOnn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
 		_state = 3; // через секунду перейдЄт в 2
 		passenger->state::set(2);
 
@@ -544,9 +544,9 @@ public:
 	}
 
 	// триггер событи€
-	void TakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
-		EventTakeOn(passenger, Vertices);
-	}
+	//void TakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
+	//	EventTakeOn(passenger, Vertices);
+	//}
 
 	// транспорт приехал за пассажиром(-ами)
 	void IfTransportIsHere(Passenger^ passenger, array<array<Point^>^>^ Vertices) {
@@ -636,13 +636,13 @@ private:
 	List<Passenger^>^ _currentClient;
 
 public:
-	delegate void HandlerTakeOnPassenger(Passenger^ passenger);
+	/*delegate void HandlerTakeOnPassenger(Passenger^ passenger);
 	delegate void HandlerDropOffPassenger(Passenger^ passenger);
 
 	event HandlerTakeOnPassenger^ EventTakeOn;
-	event HandlerDropOffPassenger^ EventDropOff;
+	event HandlerDropOffPassenger^ EventDropOff;*/
 
-	delegate void HandlerStop(int _stopAt);
+	delegate void HandlerStop(int _stopAt, int _servXPos, int _servYPos, String^ _servDirection);
 	static event HandlerStop^ EventStop;
 
 	Bus() {
@@ -658,8 +658,8 @@ public:
 		wasIn = gcnew array<bool>(4) { false, false, false, false };
 		nodeContainer = gcnew array<Node^>(6) { gcnew Node(22, "down"), gcnew Node(123, "right"), gcnew Node(101, "up"), gcnew Node(81, "left"), gcnew Node(71, "up"), gcnew Node(0, "left") };
 
-		EventTakeOn += gcnew Bus::HandlerTakeOnPassenger(this, &Bus::onTakeOn);
-		EventDropOff += gcnew Bus::HandlerDropOffPassenger(this, &Bus::onDropOff);
+		/*EventTakeOn += gcnew Bus::HandlerTakeOnPassenger(this, &Bus::onTakeOn);
+		EventDropOff += gcnew Bus::HandlerDropOffPassenger(this, &Bus::onDropOff);*/
 	}
 
 	property int stopAt {
@@ -685,7 +685,7 @@ public:
 
 		if (isBusHere) { 
 			_state = 3; 
-			EventStop(_stopAt); //вызов событи€
+			EventStop(_stopAt, _xPos, _yPos, _direction); //вызов событи€
 		}
 		if (wasIn[0]) { for (int i = 1; i < 4; i++) { wasIn[i] = false; } }
 	}
@@ -728,27 +728,27 @@ public:
 	}
 
 	// метод дл€ событи€ перехода такси в состо€ние поездки (забрало пассажира)
-	void onTakeOn(Passenger^ passenger) {
-		passenger->state::set(2);
-		passenger->goalbusStopIndex::set((_stopAt + 2) % 4);
-		_currentClient->Add(passenger);
-	}
+	//void onTakeOn(Passenger^ passenger) {
+	//	passenger->state::set(2);
+	//	passenger->goalBusStopIndex::set((_stopAt + 2) % 4);
+	//	_currentClient->Add(passenger);
+	//}
 
 	// триггер событи€
-	void TakeOn(Passenger^ passenger) {
-		EventTakeOn(passenger);
-	}
+	//void TakeOn(Passenger^ passenger) {
+	//	EventTakeOn(passenger);
+	//}
 
-	void onDropOff(Passenger^ passenger) {
-		Random^ rndGen = gcnew Random();
-		passenger->state::set(3);
-		passenger->serviceCarDirection::set(_direction);
-		passenger->serviceCarX::set(_xPos);
-		passenger->serviceCarY::set(_yPos);
-		currentClient->Remove(passenger);
-	}
+	//void onDropOff(Passenger^ passenger) {
+	//	Random^ rndGen = gcnew Random();
+	//	passenger->state::set(3);
+	//	passenger->serviceCarDirection::set(_direction);
+	//	passenger->serviceCarX::set(_xPos);
+	//	passenger->serviceCarY::set(_yPos);
+	//	currentClient->Remove(passenger);
+	//}
 
-	void DropOff(Passenger^ passenger) {
+	/*void DropOff(Passenger^ passenger) {
 		EventDropOff(passenger);
-	}
+	}*/
 };

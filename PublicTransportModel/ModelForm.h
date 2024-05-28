@@ -1,5 +1,5 @@
 #pragma once
-#include "envClass.h"
+#include "classes.h"
 
 namespace PublicTransportModel {
 
@@ -20,23 +20,6 @@ namespace PublicTransportModel {
 	private: MyEnvironment^ env;
 	private: System::Windows::Forms::Timer^ timeAction;
 	private: System::Windows::Forms::Timer^ timerStopSpamming;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 		   Bitmap^ background;
 

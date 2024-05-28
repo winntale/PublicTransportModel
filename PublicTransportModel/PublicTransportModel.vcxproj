@@ -121,10 +121,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="classes.cpp" />
     <ClCompile Include="ModelForm.cpp" />
     <ClCompile Include="TitleForm.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="classes.h" />
     <ClInclude Include="envClass.h" />
     <ClInclude Include="Defines.h" />
     <ClInclude Include="ModelForm.h">

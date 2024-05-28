@@ -18,6 +18,7 @@ private:
 	bool _isMovingAway;
 	int _moveActions;
 
+	int _busStopIndex;
 	int _goalBusStopIndex;
 
 	int _state; // состояния для такси: 0 - выбор машины; 1 - ожидание машины; 2 - в пути; 3 - в пункте прибытия
@@ -32,7 +33,24 @@ private:
 
 public:
 	Random^ rndGen = gcnew Random();
-	Passenger(int _stateVal) {
+	
+	Passenger() {
+		_color = rndGen->Next(1, 4);
+
+		_xPos = 0;
+		_yPos = 0;
+		_direction = "";
+
+		_isMovingAway = false;
+		_moveActions = 0;
+
+		_state = 0;
+
+		_busStopIndex = -1;
+
+		Bus::EventStop += gcnew Bus::HandlerStop(this, &Passenger::OnEventStop);
+	}
+	Passenger(int _stateVal, int _BusStopIndex) {
 		_color = rndGen->Next(1, 4);
 
 		_xPos = 0;
@@ -43,6 +61,10 @@ public:
 		_moveActions = 0;
 
 		_state = _stateVal;
+
+		_busStopIndex = _BusStopIndex;
+
+		Bus::EventStop += gcnew Bus::HandlerStop(this, &Passenger::OnEventStop);
 	}
 	~Passenger() {};
 
@@ -111,12 +133,25 @@ public:
 		void set(int _value) { _serviceCarY = _value; }
 	}
 
-	property int goalbusStopIndex {
+	property int goalBusStopIndex {
 		int get() { return _goalBusStopIndex; }
 		void set(int _value) { _goalBusStopIndex = _value; }
 	}
 
-	
+	// метод для события перехода такси в состояние поездки (забрало пассажира)
+	void OnEventStop(int _stopAt, int _servXPos, int _servYPos, String^ _servDirection) {
+		if ((_state == 4) && (_stopAt == _busStopIndex)) {
+			_state = 2;
+			_goalBusStopIndex = (_stopAt + 2) % 4;
+		}
+		else if ((_state == 2) && (_stopAt == _goalBusStopIndex)) {
+			_state = 3;
+			_serviceCarDirection = _servDirection;
+			_serviceCarX = _servXPos;
+			_serviceCarY = _servYPos;
+		}
+	//	_currentClient->Add(passenger);
+	}
 
 	void MoveAway() {
 		if (!_isMovingAway) {
