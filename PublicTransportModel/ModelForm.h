@@ -21,6 +21,7 @@ namespace PublicTransportModel {
 	private: System::Windows::Forms::Timer^ timeAction;
 	private: System::Windows::Forms::Timer^ timerStopSpamming;
 
+
 		   Bitmap^ background;
 
 	public:

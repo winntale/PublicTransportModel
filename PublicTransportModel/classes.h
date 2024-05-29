@@ -31,6 +31,7 @@ private:
 	int _busStopIndex;
 	int _goalBusStopIndex;
 
+	int _passengerIndex;
 	int _state; // состояния для такси: 0 - выбор машины; 1 - ожидание машины; 2 - в пути; 3 - в пункте прибытия
 	// для автобуса: 4 - ожидание автобуса;
 	int _serviceCarIndex;
@@ -43,7 +44,7 @@ private:
 
 public:
 	Passenger();
-	Passenger(int _stateVal, int _BusStopIndex);
+	Passenger(int _stateVal, int _BusStopIndex, int passengerIndex);
 
 	property int color {
 		int get() { return _color; }
@@ -115,7 +116,7 @@ public:
 		void set(int _value) { _goalBusStopIndex = _value; }
 	}
 
-	void onTaxiChoised(int serviceCarIndex);
+	void OnPassengerNoticed(int _serviceCar);
 	void OnEventStop(int _stopAt, int _servXPos, int _servYPos, String^ _servDirection);
 	void MoveAway();
 	/*void OnEventTakeOn();*/
@@ -129,6 +130,8 @@ protected:
 	int _maxVelocity;
 	System::String^ _direction;
 	System::String^ _color;
+	
+	int _serviceCarIndex;
 	int _state; // 0 - ожидание; 1 - в пути к пассажиру; 2 - перевозка пассажира; 3, 4  - ожидание пассажира на вход и выход из машины
 
 	// поля для 2-ой точки
@@ -146,8 +149,11 @@ protected:
 
 	float _tripDuration; // в секундах
 public:
+	delegate void HandlerNoticePassenger(int serviceCarIndex);
+	static event HandlerNoticePassenger^ EventNoticePassengert;
 
 	TaxiCar();
+	TaxiCar(int serviceCarIndex);
 
 	property int maxVelocity {
 		int get() { return _maxVelocity; }
@@ -245,6 +251,7 @@ public:
 	void onTakeOn(Passenger^ passenger, array<array<Point^>^>^ Vertices);
 	void MoveToPassenger(array<array<Point^>^>^ Vertices, Passenger^ passenger);
 	void onDropOff(Passenger^ passenger);
+	void OnTaxiChoised(int _serviceCar, Passenger^ currentClient, array<array<Point^>^>^ Vertices);
 };
 
 ref class Bus : public TaxiCar {
@@ -272,10 +279,8 @@ public:
 	}
 
 	void WayGenerator();
-	void IfTransportIsHere(array<Point^>^ busStops);
-	void Move(array<array<Point^>^>^ Vertices, array<Point^>^ busStops);
-	void onTakeOn(Passenger^ passenger);
-	void onDropOff(Passenger^ passenger);
+	void IfTransportIsHere(array<Point^>^ busStops, List<List<Passenger^>^>^ _BusPassengers);
+	void Move(array<array<Point^>^>^ Vertices, array<Point^>^ busStops, List<List<Passenger^>^>^ _BusPassengers);
 };
 
 
@@ -294,9 +299,10 @@ private:
 	float _localTimer3;
 
 public:
-	delegate void HandlerPassengerTaxiChoise(int serviceCarIndex);
+	delegate void HandlerTaxiChoise(int serviceCarIndex, Passenger^ currentClient, array<array<Point^>^>^ Vertices);
+	delegate void Handler();
+	static event HandlerTaxiChoise^ EventTaxiChoise;
 
-	static event HandlerPassengerTaxiChoise^ EventPassengerTaxiChoise;
 
 	MyEnvironment();
 
