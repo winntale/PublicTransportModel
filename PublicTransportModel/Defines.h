@@ -1,22 +1,24 @@
 #pragma once
 
-#define VERTEX_QUANTITY 13
+constexpr auto VERTEX_QUANTITY = 13;
 
-#define MAX_TAXICARS 5
-#define TAXICAR_IMG_HEIGHT 32
-#define TAXICAR_IMG_WIDTH 32
+constexpr auto MAX_TAXICARS = 5;
+constexpr auto TAXICAR_IMG_HEIGHT = 32;
+constexpr auto TAXICAR_IMG_WIDTH = 32;
 #define SPEED _maxVelocity / 30
 
-#define PASSENGER_OFFSET 30 // насколько далеко пассажир будет от дороги (20 - впритык по горизонтали; 35 - упирается в границу карты)
-#define PASSENGER_HEIGHT 16
-#define PASSENGER_SPEED 1
+constexpr auto PASSENGER_OFFSET = 30; // насколько далеко пассажир будет от дороги (20 - впритык по горизонтали; 35 - упирается в границу карты)
+constexpr auto PASSENGER_HEIGHT = 16;
+constexpr auto PASSENGER_SPEED = 1;
 
-#define ANTISPAM_INTERVAL 500
+constexpr auto ANTISPAM_INTERVAL = 500;
 
-#define BUS_WIDTH 27
-#define BUS_HEIGHT 58
-#define BUS_SPEED 100
+constexpr auto BUS_WIDTH = 27;
+constexpr auto BUS_HEIGHT = 58;
+constexpr auto BUS_SPEED = 150;
 
-#define BUSSTOPS_COUNT 4
-#define BUSSTOP_WIDTH 75
-#define BUSSTOP_HEIGHT 25
+constexpr auto MAX_BUS_PASSENGERS = 20;
+
+constexpr auto BUSSTOPS_COUNT = 4;
+constexpr auto BUSSTOP_WIDTH = 75;
+constexpr auto BUSSTOP_HEIGHT = 25;

@@ -20,6 +20,12 @@ namespace PublicTransportModel {
 	private: MyEnvironment^ env;
 	private: System::Windows::Forms::Timer^ timeAction;
 	private: System::Windows::Forms::Timer^ timerStopSpamming;
+	private: System::Windows::Forms::Timer^ timerQueue;
+	private: System::Windows::Forms::Label^ label3;
+	private: System::Windows::Forms::Label^ label4;
+	private: System::Windows::Forms::Label^ label5;
+	private: System::Windows::Forms::Label^ label6;
+	private: System::Windows::Forms::Label^ label7;
 
 
 		   Bitmap^ background;
@@ -84,6 +90,12 @@ namespace PublicTransportModel {
 			this->buttonExit = (gcnew System::Windows::Forms::Button());
 			this->timeAction = (gcnew System::Windows::Forms::Timer(this->components));
 			this->timerStopSpamming = (gcnew System::Windows::Forms::Timer(this->components));
+			this->timerQueue = (gcnew System::Windows::Forms::Timer(this->components));
+			this->label3 = (gcnew System::Windows::Forms::Label());
+			this->label4 = (gcnew System::Windows::Forms::Label());
+			this->label5 = (gcnew System::Windows::Forms::Label());
+			this->label6 = (gcnew System::Windows::Forms::Label());
+			this->label7 = (gcnew System::Windows::Forms::Label());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->SuspendLayout();
 			// 
@@ -174,12 +186,68 @@ namespace PublicTransportModel {
 			this->timerStopSpamming->Interval = 500;
 			this->timerStopSpamming->Tick += gcnew System::EventHandler(this, &ModelForm::timerStopSpamming_Tick);
 			// 
+			// timerQueue
+			// 
+			this->timerQueue->Enabled = true;
+			this->timerQueue->Interval = 250;
+			this->timerQueue->Tick += gcnew System::EventHandler(this, &ModelForm::timerQueue_Tick);
+			// 
+			// label3
+			// 
+			this->label3->AutoSize = true;
+			this->label3->Location = System::Drawing::Point(248, 0);
+			this->label3->Name = L"label3";
+			this->label3->Size = System::Drawing::Size(82, 31);
+			this->label3->TabIndex = 12;
+			this->label3->Text = L"label3";
+			// 
+			// label4
+			// 
+			this->label4->AutoSize = true;
+			this->label4->Location = System::Drawing::Point(564, 896);
+			this->label4->Name = L"label4";
+			this->label4->Size = System::Drawing::Size(82, 31);
+			this->label4->TabIndex = 13;
+			this->label4->Text = L"label4";
+			// 
+			// label5
+			// 
+			this->label5->AutoSize = true;
+			this->label5->Location = System::Drawing::Point(729, 180);
+			this->label5->Name = L"label5";
+			this->label5->Size = System::Drawing::Size(82, 31);
+			this->label5->TabIndex = 14;
+			this->label5->Text = L"label5";
+			// 
+			// label6
+			// 
+			this->label6->AutoSize = true;
+			this->label6->Location = System::Drawing::Point(984, 420);
+			this->label6->Name = L"label6";
+			this->label6->Size = System::Drawing::Size(82, 31);
+			this->label6->TabIndex = 15;
+			this->label6->Text = L"label6";
+			// 
+			// label7
+			// 
+			this->label7->AutoSize = true;
+			this->label7->Location = System::Drawing::Point(1281, 402);
+			this->label7->Name = L"label7";
+			this->label7->Size = System::Drawing::Size(82, 31);
+			this->label7->TabIndex = 16;
+			this->label7->Text = L"label7";
+			// 
 			// ModelForm
 			// 
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::None;
 			this->BackColor = System::Drawing::Color::FromArgb(static_cast<System::Int32>(static_cast<System::Byte>(70)), static_cast<System::Int32>(static_cast<System::Byte>(73)),
 				static_cast<System::Int32>(static_cast<System::Byte>(79)));
 			this->ClientSize = System::Drawing::Size(1584, 927);
+			this->Controls->Add(this->label7);
+			this->Controls->Add(this->label6);
+			this->Controls->Add(this->label5);
+			this->Controls->Add(this->label4);
+			this->Controls->Add(this->label3);
 			this->Controls->Add(this->buttonExit);
 			this->Controls->Add(this->colorValue);
 			this->Controls->Add(this->label2);
@@ -323,5 +391,15 @@ namespace PublicTransportModel {
 		buttonTaxiSpawn->ForeColor = Color::Silver;
 		buttonTaxiSpawn->Cursor = Cursors::Hand;
 	}
-	};
+	private: System::Void timerQueue_Tick(System::Object^ sender, System::EventArgs^ e) {
+		if (env->pBus->state::get() == 3) {
+			env->pBus->EventStopTrigger(env->BusPassengers, env->pBus->stopAt::get(), env->pBus->xPos::get(), env->pBus->yPos::get(), env->pBus->direction::get());
+		}
+		label3->Text = Convert::ToString(env->BusPassengers[0]->Count);
+		label4->Text = Convert::ToString(env->BusPassengers[1]->Count);
+		label5->Text = Convert::ToString(env->BusPassengers[2]->Count);
+		label6->Text = Convert::ToString(env->BusPassengers[3]->Count);
+		label7->Text = Convert::ToString(env->BusPassengers[4]->Count);
+	}
+};
 }

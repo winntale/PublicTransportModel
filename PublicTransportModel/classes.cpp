@@ -501,7 +501,8 @@ void Bus::WayGenerator() {
 	for each (Node ^ node in nodeContainer) { _way->Add(node); }
 }
 
-void Bus::IfTransportIsHere(array<Point^>^ busStops, List<List<Passenger^>^>^ _BusPassengers) {
+void Bus::IfTransportIsHere(array<Point^>^ busStops) {
+	Random^ rndGen = gcnew Random();
 	bool isBusHere = false;
 
 	if (!wasIn[0] && (Math::Abs(_xPos - busStops[0]->X) < SPEED) && ((_yPos - busStops[0]->Y) < 50)) { isBusHere = true; wasIn[0] = true; _stopAt = 0; }
@@ -509,11 +510,12 @@ void Bus::IfTransportIsHere(array<Point^>^ busStops, List<List<Passenger^>^>^ _B
 	if (!wasIn[2] && (Math::Abs(_yPos - busStops[2]->Y) < SPEED) && ((busStops[0]->X - _xPos) < 80)) { isBusHere = true; wasIn[2] = true; _stopAt = 2; }
 	if (!wasIn[3] && (Math::Abs(_yPos - busStops[3]->Y) < SPEED) && ((busStops[0]->X - _xPos) < 80)) { isBusHere = true; wasIn[3] = true; _stopAt = 3; }
 
-	if (isBusHere && (_BusPassengers[_stopAt]->Count)) {
-		_state = 3;
-		EventStop(_stopAt, _xPos, _yPos, _direction); //вызов события
-	}
+	if (isBusHere) { _state = 3; }
 	if (wasIn[0]) { for (int i = 1; i < 4; i++) { wasIn[i] = false; } }
+}
+
+void Bus::EventStopTrigger(List<List<Passenger^>^>^ _BusPassengers, int _stopAt, int _xPos, int _yPos, String^ _direction) {
+	EventStop(_BusPassengers[_stopAt]->Count - 1, _stopAt, _xPos, _yPos, _direction); //вызов события
 }
 
 // в  классе автобуса есть событие EventStop (класс автобус - это издатель события EventStop)
@@ -521,7 +523,7 @@ void Bus::IfTransportIsHere(array<Point^>^ busStops, List<List<Passenger^>^>^ _B
 // как происходит реагирование пассажира:
 // 
 
-void Bus::Move(array<array<Point^>^>^ Vertices, array<Point^>^ busStops, List<List<Passenger^>^>^ _BusPassengers) {
+void Bus::Move(array<array<Point^>^>^ Vertices, array<Point^>^ busStops) {
 	if (_direction == "left") { _xPos -= SPEED; }
 	else if (_direction == "right") { _xPos += SPEED; }
 
@@ -550,7 +552,7 @@ void Bus::Move(array<array<Point^>^>^ Vertices, array<Point^>^ busStops, List<Li
 	}
 	_direction = _way[0]->direction;
 
-	IfTransportIsHere(busStops, _BusPassengers);
+	IfTransportIsHere(busStops);
 }
 
 // Определение Passanger
@@ -560,6 +562,7 @@ Passenger::Passenger() {
 	Random^ rndGen = gcnew Random();
 	_color = rndGen->Next(1, 4);
 
+	_axisOffset = 0;
 	_xPos = 0;
 	_yPos = 0;
 	_direction = "";
@@ -598,13 +601,14 @@ Passenger::Passenger(int _stateVal, int _BusStopIndex, int passengerIndex) {
 }
 
 
-void Passenger::OnEventStop(int _stopAt, int _servXPos, int _servYPos, String^ _servDirection) {
+void Passenger::OnEventStop(int passIndex, int _stopAt, int _servXPos, int _servYPos, String^ _servDirection) {
 	Random^ rndGen = gcnew Random();
-	if ((_state == 4) && (_stopAt == _busStopIndex)) {
+	if ((passIndex == _passengerIndex) && (_state == 4) && (_stopAt == _busStopIndex)) {
 		_state = 2;
+		_busStopIndex = 4;
 		_goalBusStopIndex = (_stopAt + 2) % 4;
 	}
-	else if ((_state == 2) && (_stopAt == _goalBusStopIndex)) {
+	if ((_busStopIndex == 4) && (_state == 2) && (_stopAt == _goalBusStopIndex)) {
 		_state = 3;
 		_serviceCarDirection = _servDirection;
 		_serviceCarX = _servXPos;
@@ -613,6 +617,8 @@ void Passenger::OnEventStop(int _stopAt, int _servXPos, int _servYPos, String^ _
 }
 
 void Passenger::MoveAway() {
+	Random^ rndGen = gcnew Random();
+
 	if (!_isMovingAway) {
 		if (_serviceCarDirection == "down") { _xPos = _serviceCarX - 10; _yPos = _serviceCarY; _direction = "left"; }
 		else if (_serviceCarDirection == "up") { _xPos = _serviceCarX + 10; _yPos = _serviceCarY; _direction = "right"; }
@@ -622,10 +628,11 @@ void Passenger::MoveAway() {
 		_isMovingAway = true;
 	}
 	else {
-		if (_direction == "left") { _xPos -= PASSENGER_SPEED; }
-		else if (_direction == "right") { _xPos += PASSENGER_SPEED; }
-		else if (_direction == "down") { _yPos += PASSENGER_SPEED; }
-		else if (_direction == "up") { _yPos -= PASSENGER_SPEED; }
+		if (_moveActions == 0) { _axisOffset = (_passengerIndex / 2) * Math::Pow(-1, _passengerIndex % 2); }
+		if (_direction == "left") { _xPos -= PASSENGER_SPEED; _yPos += _axisOffset; }
+		else if (_direction == "right") { _xPos += PASSENGER_SPEED; _yPos += _axisOffset; }
+		else if (_direction == "down") { _xPos += _axisOffset; _yPos += PASSENGER_SPEED; }
+		else if (_direction == "up") { _xPos += _axisOffset; _yPos -= PASSENGER_SPEED; }
 
 		_moveActions++;
 	}
@@ -645,8 +652,8 @@ MyEnvironment::MyEnvironment() {
 	_Bus = gcnew Bus();
 	_TaxiCars = gcnew List<TaxiCar^>(0);
 	_Passengers = gcnew List<Passenger^>(0);
-	_BusPassengers = gcnew List<List<Passenger^>^>(4);
-	for (int i = 0; i < 4; i++) { _BusPassengers->Add(gcnew List<Passenger^>()); }
+	_BusPassengers = gcnew List<List<Passenger^>^>(5);
+	for (int i = 0; i < 5; i++) { _BusPassengers->Add(gcnew List<Passenger^>()); }
 	cordinates = gcnew array<Point^>(VERTEX_QUANTITY) {
 		Point(151, 75), Point(151, 326), Point(151, 828),
 			Point(402, 75), Point(402, 326), Point(402, 577), Point(402, 828), Point(653, 75), Point(653, 326), Point(653, 577), Point(904, 326), Point(904, 577), Point(904, 828)
@@ -890,9 +897,9 @@ void MyEnvironment::PassengerSpawn() {
 
 	}
 	// создание пассажира автобуса
-	else if ((numOfPassengers < 20) && (randomNumber > 950)) {
+	else if ((numOfPassengers < MAX_BUS_PASSENGERS) && (randomNumber > 970)) {
 		int BusStopIndex = rndGen->Next(0, BUSSTOPS_COUNT);
-		BusPassengers[BusStopIndex]->Add(gcnew Passenger(4, BusStopIndex, BusPassengers->Count));
+		BusPassengers[BusStopIndex]->Add(gcnew Passenger(4, BusStopIndex, BusPassengers[BusStopIndex]->Count));
 
 		if (BusStopIndex < 2) {
 			if (BusStopIndex == 0) { BusPassengers[BusStopIndex]->ToArray()[BusPassengers[BusStopIndex]->Count - 1]->direction::set("left"); }
@@ -930,7 +937,7 @@ void MyEnvironment::TaxiChoise() {
 // действия для автобуса
 void MyEnvironment::BusActions() {
 	if (_Bus->state::get() == 0) {
-		_Bus->Move(Vertices, busStops, BusPassengers);
+		_Bus->Move(Vertices, busStops);
 	}
 	else if (_Bus->state::get() == 3) {
 		_localTimer += 0.05;
@@ -984,7 +991,7 @@ void MyEnvironment::TaxiActions() {
 	//		}
 	//	}
 	//}
-// движение по прибытии
+	// движение по прибытии
 void MyEnvironment::BusPassengersMove() {
 	for (int i = 0; i < BusPassengers->Count; i++) {
 		for (int j = 0; j < BusPassengers[i]->Count; j++) {
@@ -1015,8 +1022,7 @@ void MyEnvironment::TimerTickActions() {
 	BusActions();
 
 	// массив пассажиров в 4 состоянии (ждут автобуса)
-	List<Passenger^>^ waitingPassengers = gcnew List<Passenger^>(0);
-	for each (Passenger ^ passenger in BusPassengers[_Bus->stopAt::get()]) { if (passenger->state::get() == 4) { waitingPassengers->Add(passenger); } }
+	
 
 	//BusPassengersTakeOn(waitingPassengers);
 	//BusPassengersDropOff();
@@ -1026,6 +1032,14 @@ void MyEnvironment::TimerTickActions() {
 
 	PassengersAction();
 
+	for (int i = 0; i < 4; i++) {
+		for each (Passenger ^ passenger in BusPassengers[i]->ToArray()) {
+			if (passenger->busStopIndex::get() == 4) {
+				BusPassengers[i]->Remove(passenger);
+				BusPassengers[4]->Add(passenger);
+			}
+		}
+	}
 }
 
 Node::Node(int _vertice) {

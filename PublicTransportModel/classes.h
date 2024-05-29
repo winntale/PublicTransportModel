@@ -21,8 +21,9 @@ ref class Passenger {
 private:
 	int _color; // 0 - чёрный; 1 - рыжий; 2 - русый
 
-	int _xPos;
-	int _yPos;
+	int _axisOffset;
+	float _xPos;
+	float _yPos;
 	String^ _direction;
 
 	bool _isMovingAway;
@@ -111,13 +112,18 @@ public:
 		void set(int _value) { _serviceCarY = _value; }
 	}
 
+	property int busStopIndex{
+		int get() { return _busStopIndex; }
+		void set(int _value) { _busStopIndex = _value; }
+	}
+
 	property int goalBusStopIndex {
 		int get() { return _goalBusStopIndex; }
 		void set(int _value) { _goalBusStopIndex = _value; }
 	}
 
 	void OnPassengerNoticed(int _serviceCar);
-	void OnEventStop(int _stopAt, int _servXPos, int _servYPos, String^ _servDirection);
+	void OnEventStop(int passIndex, int _stopAt, int _servXPos, int _servYPos, String^ _servDirection);
 	void MoveAway();
 	/*void OnEventTakeOn();*/
 };
@@ -260,11 +266,13 @@ private:
 	array<Node^>^ nodeContainer;
 	int _stopAt;
 
+	int _localTimer;
+	bool _isBusHere;
 	List<Passenger^>^ _currentClient;
 
 public:
 
-	delegate void HandlerStop(int _stopAt, int _servXPos, int _servYPos, String^ _servDirection);
+	delegate void HandlerStop(int passIndex, int _stopAt, int _servXPos, int _servYPos, String^ _servDirection);
 	static event HandlerStop^ EventStop;
 
 	Bus();
@@ -279,8 +287,9 @@ public:
 	}
 
 	void WayGenerator();
-	void IfTransportIsHere(array<Point^>^ busStops, List<List<Passenger^>^>^ _BusPassengers);
-	void Move(array<array<Point^>^>^ Vertices, array<Point^>^ busStops, List<List<Passenger^>^>^ _BusPassengers);
+	void IfTransportIsHere(array<Point^>^ busStops);
+	void EventStopTrigger(List<List<Passenger^>^>^ _BusPassengers, int _stopAt, int _xPos, int _yPos, String^ _direction);
+	void Move(array<array<Point^>^>^ Vertices, array<Point^>^ busStops);
 };
 
 
@@ -300,9 +309,7 @@ private:
 
 public:
 	delegate void HandlerTaxiChoise(int serviceCarIndex, Passenger^ currentClient, array<array<Point^>^>^ Vertices);
-	delegate void Handler();
 	static event HandlerTaxiChoise^ EventTaxiChoise;
-
 
 	MyEnvironment();
 
